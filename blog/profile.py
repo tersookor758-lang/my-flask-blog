@@ -7,29 +7,70 @@ from flask import (
     redirect,
     url_for,
     flash,
-    current_app
+    current_app,
+    abort
 )
 
-from flask_login import login_required, current_user
+from flask_login import (
+    login_required,
+    current_user
+)
+
 from werkzeug.utils import secure_filename
 
-from models import db
+from models import (
+    db,
+    User
+)
+
 from forms import ProfileForm
 
 
-profile = Blueprint("profile", __name__)
+profile = Blueprint(
+    "profile",
+    __name__
+)
 
+
+# ---------------------------------------
+# MY PROFILE
+# ---------------------------------------
 
 @profile.route("/profile")
 @login_required
 def view_profile():
+
     return render_template(
         "profile.html",
         user=current_user
     )
 
 
-@profile.route("/profile/edit", methods=["GET", "POST"])
+# ---------------------------------------
+# PUBLIC USER PROFILE
+# ---------------------------------------
+
+@profile.route("/user/<string:username>")
+def user_profile(username):
+
+    user = User.query.filter_by(
+        username=username
+    ).first_or_404()
+
+    return render_template(
+        "user_profile.html",
+        user=user
+    )
+
+
+# ---------------------------------------
+# EDIT PROFILE
+# ---------------------------------------
+
+@profile.route(
+    "/profile/edit",
+    methods=["GET", "POST"]
+)
 @login_required
 def edit_profile():
 
@@ -47,7 +88,10 @@ def edit_profile():
 
         if form.profile_picture.data:
 
-            if current_user.profile_picture and current_user.profile_picture != "default.png":
+            if (
+                current_user.profile_picture
+                and current_user.profile_picture != "default.png"
+            ):
 
                 old_picture = os.path.join(
                     current_app.config["UPLOAD_FOLDER"],
