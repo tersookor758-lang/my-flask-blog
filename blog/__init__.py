@@ -22,9 +22,19 @@ def create_app():
         template_folder="../templates"
     )
 
+    # =====================================
+    # Flask Configuration
+    # =====================================
+
     app.config["SECRET_KEY"] = "your_secret_key"
+
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///blog.db"
+
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+    # =====================================
+    # Upload Configuration
+    # =====================================
 
     app.config["UPLOAD_FOLDER"] = os.path.join(
         app.root_path,
@@ -32,15 +42,33 @@ def create_app():
         "uploads"
     )
 
-    app.config["MAX_CONTENT_LENGTH"] = 100 * 1024 * 1024
+    # Flask request size limit (~1.1 GB)
+    #
+    # This allows:
+    # - Images up to 30 MB
+    # - Videos up to 1 GB
+    #
+    # Individual file validation is handled
+    # inside blog/posts.py.
+
+    app.config["MAX_CONTENT_LENGTH"] = 1100 * 1024 * 1024
 
     os.makedirs(
         app.config["UPLOAD_FOLDER"],
         exist_ok=True
     )
 
+    # =====================================
+    # Initialize Extensions
+    # =====================================
+
     db.init_app(app)
+
     login_manager.init_app(app)
+
+    # =====================================
+    # Register Blueprints
+    # =====================================
 
     from blog.routes import main
     app.register_blueprint(main)
@@ -62,6 +90,10 @@ def create_app():
 
     from blog.comments import comments
     app.register_blueprint(comments)
+
+    # =====================================
+    # Create Database Tables
+    # =====================================
 
     with app.app_context():
         db.create_all()

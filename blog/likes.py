@@ -1,5 +1,15 @@
-from flask import Blueprint, redirect, url_for, request
-from flask_login import login_required, current_user
+from flask import (
+    Blueprint,
+    redirect,
+    url_for,
+    request,
+    flash
+)
+
+from flask_login import (
+    login_required,
+    current_user
+)
 
 from models import (
     db,
@@ -16,7 +26,10 @@ likes = Blueprint(
 )
 
 
-# ---------------- POST LIKE / UNLIKE ----------------
+
+# ==================================================
+# POST LIKE / UNLIKE
+# ==================================================
 
 @likes.route(
     "/post/<int:post_id>/like",
@@ -25,20 +38,40 @@ likes = Blueprint(
 @login_required
 def like_post(post_id):
 
-    post = Post.query.get_or_404(
+    post = db.session.get(
+        Post,
         post_id
     )
+
+    if not post:
+        flash(
+            "Post not found.",
+            "danger"
+        )
+
+        return redirect(
+            request.referrer or url_for("main.home")
+        )
+
 
     existing_like = PostLike.query.filter_by(
         user_id=current_user.id,
         post_id=post.id
     ).first()
 
+
+
     if existing_like:
 
         db.session.delete(
             existing_like
         )
+
+        flash(
+            "Post unliked.",
+            "info"
+        )
+
 
     else:
 
@@ -51,14 +84,28 @@ def like_post(post_id):
             new_like
         )
 
+        flash(
+            "Post liked.",
+            "success"
+        )
+
+
+
     db.session.commit()
+
+
 
     return redirect(
         request.referrer or url_for("main.home")
     )
 
 
-# ---------------- COMMENT LIKE / UNLIKE ----------------
+
+
+
+# ==================================================
+# COMMENT LIKE / UNLIKE
+# ==================================================
 
 @likes.route(
     "/comment/<int:comment_id>/like",
@@ -67,9 +114,24 @@ def like_post(post_id):
 @login_required
 def like_comment(comment_id):
 
-    comment = Comment.query.get_or_404(
+    comment = db.session.get(
+        Comment,
         comment_id
     )
+
+
+    if not comment:
+
+        flash(
+            "Comment not found.",
+            "danger"
+        )
+
+        return redirect(
+            request.referrer or url_for("main.home")
+        )
+
+
 
     existing_like = CommentLike.query.filter_by(
         user_id=current_user.id,
@@ -77,11 +139,18 @@ def like_comment(comment_id):
     ).first()
 
 
+
     if existing_like:
 
         db.session.delete(
             existing_like
         )
+
+        flash(
+            "Comment unliked.",
+            "info"
+        )
+
 
     else:
 
@@ -94,8 +163,15 @@ def like_comment(comment_id):
             new_like
         )
 
+        flash(
+            "Comment liked.",
+            "success"
+        )
+
+
 
     db.session.commit()
+
 
 
     return redirect(

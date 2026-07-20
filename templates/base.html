@@ -5,30 +5,34 @@
 
     <meta charset="UTF-8">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>
+
         JP Blog | {% block title %}{% endblock %}
+
     </title>
 
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
 
 </head>
 
-
 <body class="bg-light">
-
-
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
 
-
     <div class="container">
 
-
-        <a class="navbar-brand fw-bold"
-           href="{{ url_for('main.home') }}">
+        <a
+            class="navbar-brand fw-bold"
+            href="{{ url_for('main.home') }}"
+        >
 
             JP Blog
 
@@ -36,86 +40,132 @@
 
 
 
+        <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarContent"
+        >
 
-        <div class="navbar-nav ms-auto">
+            <span class="navbar-toggler-icon"></span>
 
-
-            <a class="nav-link"
-               href="{{ url_for('main.home') }}">
-
-                Home
-
-            </a>
-
-
-
-
-            {% if current_user.is_authenticated %}
+        </button>
 
 
 
-                <a class="nav-link"
-                   href="{{ url_for('posts.create_post') }}">
-
-                    Create Post
-
-                </a>
+        <div
+            class="collapse navbar-collapse"
+            id="navbarContent"
+        >
 
 
 
+            <!-- Search -->
 
-                <a class="nav-link"
-                   href="{{ url_for('profile.view_profile') }}">
+            <form
+                class="d-flex mx-lg-auto my-3 my-lg-0"
+                method="GET"
+                action="{{ url_for('main.home') }}"
+            >
 
-                    {{ current_user.username }}
+                <input
+                    class="form-control me-2"
+                    type="search"
+                    name="search"
+                    placeholder="Search posts or users..."
+                    value="{{ search if search else '' }}"
+                >
 
-                </a>
+                <button
+                    class="btn btn-outline-light"
+                    type="submit"
+                >
 
+                    Search
 
+                </button>
 
-
-                <a class="nav-link"
-                   href="{{ url_for('auth.logout') }}">
-
-                    Logout
-
-                </a>
-
-
-
-
-            {% else %}
-
-
-
-                <a class="nav-link"
-                   href="{{ url_for('auth.login') }}">
-
-                    Login
-
-                </a>
+            </form>
 
 
 
+            <!-- Navigation -->
 
-                <a class="nav-link"
-                   href="{{ url_for('auth.register') }}">
+            <div class="navbar-nav ms-lg-auto">
 
-                    Register
+                <a
+                    class="nav-link"
+                    href="{{ url_for('main.home') }}"
+                >
+
+                    Home
 
                 </a>
 
 
 
-            {% endif %}
+                {% if current_user.is_authenticated %}
+
+                    <a
+                        class="nav-link"
+                        href="{{ url_for('posts.create_post') }}"
+                    >
+
+                        Create Post
+
+                    </a>
 
 
+
+                    <a
+                        class="nav-link"
+                        href="{{ url_for('profile.view_profile') }}"
+                    >
+
+                        {{ current_user.username }}
+
+                    </a>
+
+
+
+                    <a
+                        class="nav-link"
+                        href="{{ url_for('auth.logout') }}"
+                    >
+
+                        Logout
+
+                    </a>
+
+                {% else %}
+
+                    <a
+                        class="nav-link"
+                        href="{{ url_for('auth.login') }}"
+                    >
+
+                        Login
+
+                    </a>
+
+
+
+                    <a
+                        class="nav-link"
+                        href="{{ url_for('auth.register') }}"
+                    >
+
+                        Register
+
+                    </a>
+
+                {% endif %}
+
+            </div>
 
         </div>
 
-
     </div>
-
 
 </nav>
 
@@ -125,59 +175,35 @@
 
 <div class="container mt-4">
 
-
-
     {% with messages = get_flashed_messages(with_categories=true) %}
-
 
         {% if messages %}
 
-
-
             {% for category, message in messages %}
-
-
 
                 <div class="alert alert-{{ category }} alert-dismissible fade show">
 
-
-
                     {{ message }}
-
-
 
                     <button
                         type="button"
                         class="btn-close"
-                        data-bs-dismiss="alert">
-                    </button>
-
-
+                        data-bs-dismiss="alert"
+                    ></button>
 
                 </div>
 
-
-
             {% endfor %}
-
-
 
         {% endif %}
 
-
-
     {% endwith %}
-
-
 
 
 
     {% block content %}
 
     {% endblock %}
-
-
-
 
 </div>
 
@@ -187,9 +213,7 @@
 
 <footer class="bg-dark text-white text-center py-3 mt-5">
 
-
     <div class="container">
-
 
         <p class="mb-1">
 
@@ -197,27 +221,18 @@
 
         </p>
 
-
-
         <small>
 
             Built with Flask & Bootstrap
 
         </small>
-    </div>
 
+    </div>
 
 </footer>
 
-
-
-
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
 
-
-
 </body>
-
 
 </html>
