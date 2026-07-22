@@ -1,6 +1,4 @@
-
 {% extends "base.html" %}
-
 
 {% block title %}
 Edit Post
@@ -32,9 +30,7 @@ Edit Post
 
                         {{ form.title.label(class="form-label") }}
 
-                        {{ form.title(
-                            class="form-control"
-                        ) }}
+                        {{ form.title(class="form-control") }}
 
                     </div>
 
@@ -49,6 +45,13 @@ Edit Post
 
                     </div>
 
+                    <div class="mb-3">
+
+                        {{ form.category.label(class="form-label") }}
+
+                        {{ form.category(class="form-select") }}
+
+                    </div>
 
                     {% if post.image %}
 
@@ -70,7 +73,6 @@ Edit Post
 
                     {% endif %}
 
-
                     <div class="mb-3">
 
                         {{ form.image.label(class="form-label") }}
@@ -82,7 +84,6 @@ Edit Post
                         </div>
 
                     </div>
-
 
                     {% if post.video %}
 
@@ -107,7 +108,6 @@ Edit Post
 
                     {% endif %}
 
-
                     <div class="mb-3">
 
                         {{ form.video.label(class="form-label") }}
@@ -119,7 +119,6 @@ Edit Post
                         </div>
 
                     </div>
-
 
                     {{ form.submit(
                         class="btn btn-primary",
@@ -145,4 +144,3 @@ Edit Post
 </div>
 
 {% endblock %}
-```

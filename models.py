@@ -6,6 +6,44 @@ from datetime import datetime
 db = SQLAlchemy()
 
 
+# =====================================================
+# CATEGORY MODEL
+# =====================================================
+
+class Category(db.Model):
+
+    __tablename__ = "categories"
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    name = db.Column(
+        db.String(100),
+        unique=True,
+        nullable=False
+    )
+
+    created_at = db.Column(
+        db.DateTime,
+        default=datetime.utcnow
+    )
+
+    posts = db.relationship(
+        "Post",
+        back_populates="category",
+        lazy=True
+    )
+
+    def __repr__(self):
+        return f"<Category {self.name}>"
+
+
+# =====================================================
+# USER MODEL
+# =====================================================
+
 class User(UserMixin, db.Model):
 
     __tablename__ = "users"
@@ -94,6 +132,10 @@ class User(UserMixin, db.Model):
         return f"<User {self.username}>"
 
 
+# =====================================================
+# POST MODEL
+# =====================================================
+
 class Post(db.Model):
 
     __tablename__ = "posts"
@@ -132,6 +174,17 @@ class Post(db.Model):
         nullable=False
     )
 
+    category_id = db.Column(
+        db.Integer,
+        db.ForeignKey("categories.id"),
+        nullable=True
+    )
+
+    category = db.relationship(
+        "Category",
+        back_populates="posts"
+    )
+
     comments = db.relationship(
         "Comment",
         backref="post",
@@ -148,7 +201,9 @@ class Post(db.Model):
 
     def __repr__(self):
         return f"<Post {self.title}>"
-
+    # =====================================================
+# COMMENT MODEL
+# =====================================================
 
 class Comment(db.Model):
 
@@ -207,6 +262,10 @@ class Comment(db.Model):
         return f"<Comment {self.id}>"
 
 
+# =====================================================
+# POST LIKE MODEL
+# =====================================================
+
 class PostLike(db.Model):
 
     __tablename__ = "post_likes"
@@ -252,8 +311,15 @@ class PostLike(db.Model):
     )
 
     def __repr__(self):
-        return f"<PostLike User={self.user_id} Post={self.post_id}>"
+        return (
+            f"<PostLike User={self.user_id} "
+            f"Post={self.post_id}>"
+        )
 
+
+# =====================================================
+# COMMENT LIKE MODEL
+# =====================================================
 
 class CommentLike(db.Model):
 
@@ -300,4 +366,7 @@ class CommentLike(db.Model):
     )
 
     def __repr__(self):
-        return f"<CommentLike User={self.user_id} Comment={self.comment_id}>"
+        return (
+            f"<CommentLike User={self.user_id} "
+            f"Comment={self.comment_id}>"
+        )

@@ -4,7 +4,8 @@ from wtforms import (
     StringField,
     PasswordField,
     SubmitField,
-    TextAreaField
+    TextAreaField,
+    SelectField
 )
 from wtforms.validators import (
     DataRequired,
@@ -85,6 +86,15 @@ class PostForm(FlaskForm):
         validators=[
             DataRequired()
         ]
+    )
+
+    category = SelectField(
+        "Category",
+        coerce=int,
+        validators=[
+            DataRequired()
+        ],
+        choices=[]
     )
 
     image = FileField(
