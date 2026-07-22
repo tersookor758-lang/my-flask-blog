@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ category.name }}
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h2>
+                {{ category.name }}
+            </h2>
+
+            <p class="text-muted">
+                {{ posts|length }}
+                Post{% if posts|length != 1 %}s{% endif %}
+                in this category
+            </p>
+
+        </div>
+
+        <a
+            href="{{ url_for('main.home') }}"
+            class="btn btn-secondary"
+        >
+            ← Back Home
+        </a>
+
+    </div>
+
+    {% if posts %}
+
+        {% for post in posts %}
+
+        <div class="card shadow-sm mb-4">
+
+            {% if post.image %}
+
+            <img
+                src="{{ url_for('static', filename='uploads/' + post.image) }}"
+                class="card-img-top"
+                alt="{{ post.title }}"
+            >
+
+            {% endif %}
+
+            <div class="card-body">
+
+                <h3>
+
+                    <a
+                        href="{{ url_for('posts.view_post', post_id=post.id) }}"
+                        class="text-decoration-none"
+                    >
+                        {{ post.title }}
+                    </a>
+
+                </h3>
+
+                <p class="text-muted">
+
+                    By
+
+                    <a
+                        href="{{ url_for('profile.user_profile', username=post.author.username) }}"
+                        class="text-decoration-none"
+                    >
+                        {{ post.author.username }}
+                    </a>
+
+                    •
+
+                    {{ post.created_at.strftime("%d %B %Y") }}
+
+                </p>
+
+                <p>
+
+                    {{ post.content[:250] }}
+
+                    {% if post.content|length > 250 %}
+                        ...
+                    {% endif %}
+
+                </p>
+
+                <a
+                    href="{{ url_for('posts.view_post', post_id=post.id) }}"
+                    class="btn btn-primary"
+                >
+                    Read More
+                </a>
+
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    {% else %}
+
+        <div class="alert alert-info">
+
+            No posts have been added to this category yet.
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}
