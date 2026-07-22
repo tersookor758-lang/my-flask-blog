@@ -7,8 +7,7 @@ from flask import (
     redirect,
     url_for,
     flash,
-    current_app,
-    abort
+    current_app
 )
 
 from flask_login import (
@@ -20,7 +19,8 @@ from werkzeug.utils import secure_filename
 
 from models import (
     db,
-    User
+    User,
+    Post
 )
 
 from forms import ProfileForm
@@ -57,9 +57,16 @@ def user_profile(username):
         username=username
     ).first_or_404()
 
+    posts = sorted(
+        user.posts,
+        key=lambda post: post.created_at,
+        reverse=True
+    )
+
     return render_template(
         "user_profile.html",
-        user=user
+        user=user,
+        posts=posts
     )
 
 
