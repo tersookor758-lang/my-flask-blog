@@ -69,7 +69,7 @@ class LoginForm(FlaskForm):
     submit = SubmitField("Login")
 
 
-# ---------------- CREATE / EDIT POST ----------------
+## ---------------- CREATE / EDIT POST ----------------
 
 class PostForm(FlaskForm):
 
@@ -81,20 +81,20 @@ class PostForm(FlaskForm):
         ]
     )
 
+    category = SelectField(
+        "Category",
+        coerce=int,
+        choices=[],
+        validators=[
+            Optional()
+        ]
+    )
+
     content = TextAreaField(
         "Content",
         validators=[
             DataRequired()
         ]
-    )
-
-    category = SelectField(
-        "Category",
-        coerce=int,
-        validators=[
-            DataRequired()
-        ],
-        choices=[]
     )
 
     image = FileField(
@@ -118,22 +118,6 @@ class PostForm(FlaskForm):
     )
 
     submit = SubmitField("Publish Post")
-
-
-# ---------------- COMMENT ----------------
-
-class CommentForm(FlaskForm):
-
-    content = TextAreaField(
-        "Write a comment...",
-        validators=[
-            DataRequired(),
-            Length(min=1, max=500)
-        ]
-    )
-
-    submit = SubmitField("Post Comment")
-
 
 # ---------------- PROFILE ----------------
 
