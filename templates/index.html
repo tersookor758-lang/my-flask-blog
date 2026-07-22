@@ -12,24 +12,16 @@ Home
 
         {% if search %}
 
-            <h2>
-                Search Results
-            </h2>
+            <h2>Search Results</h2>
 
             <p class="text-muted mb-0">
-
                 Results for:
                 <strong>"{{ search }}"</strong>
-
             </p>
 
         {% else %}
 
-            <h2>
-
-                Latest Blog Posts
-
-            </h2>
+            <h2>Latest Blog Posts</h2>
 
         {% endif %}
 
@@ -41,9 +33,7 @@ Home
             href="{{ url_for('posts.create_post') }}"
             class="btn btn-dark"
         >
-
             Create Post
-
         </a>
 
     {% endif %}
@@ -51,10 +41,9 @@ Home
 </div>
 
 
+{% if posts.items %}
 
-{% if posts %}
-
-    {% for post in posts %}
+    {% for post in posts.items %}
 
         <div class="card shadow-sm mb-4">
 
@@ -66,9 +55,7 @@ Home
                         href="{{ url_for('posts.view_post', post_id=post.id) }}"
                         class="text-decoration-none"
                     >
-
                         {{ post.title }}
-
                     </a>
 
                 </h3>
@@ -78,12 +65,10 @@ Home
                     By
 
                     <a
-                       href="{{ url_for('profile.user_profile', username=post.author.username) }}"
+                        href="{{ url_for('profile.user_profile', username=post.author.username) }}"
                         class="text-decoration-none fw-bold"
                     >
-
                         {{ post.author.username }}
-
                     </a>
 
                     |
@@ -99,9 +84,7 @@ Home
                     {{ post.content[:300] }}
 
                     {% if post.content|length > 300 %}
-
                         ...
-
                     {% endif %}
 
                 </p>
@@ -110,9 +93,7 @@ Home
                     href="{{ url_for('posts.view_post', post_id=post.id) }}"
                     class="btn btn-primary"
                 >
-
                     Read More
-
                 </a>
 
                 {% if current_user.is_authenticated and current_user.id == post.user_id %}
@@ -121,9 +102,7 @@ Home
                         href="{{ url_for('posts.edit_post', post_id=post.id) }}"
                         class="btn btn-warning"
                     >
-
                         Edit
-
                     </a>
 
                     <form
@@ -137,9 +116,7 @@ Home
                             class="btn btn-danger"
                             onclick="return confirm('Delete this post?')"
                         >
-
                             Delete
-
                         </button>
 
                     </form>
@@ -152,17 +129,118 @@ Home
 
     {% endfor %}
 
+    <!-- Pagination -->
+
+    <nav aria-label="Blog pagination">
+
+        <ul class="pagination justify-content-center">
+
+            {% if posts.has_prev %}
+
+                <li class="page-item">
+
+                    <a
+                        class="page-link"
+                        href="{{ url_for('main.home', page=posts.prev_num, search=search) }}"
+                    >
+                        Previous
+                    </a>
+
+                </li>
+
+            {% else %}
+
+                <li class="page-item disabled">
+
+                    <span class="page-link">
+                        Previous
+                    </span>
+
+                </li>
+
+            {% endif %}
+
+
+            {% for page_num in posts.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+
+                {% if page_num %}
+
+                    {% if page_num == posts.page %}
+
+                        <li class="page-item active">
+
+                            <span class="page-link">
+                                {{ page_num }}
+                            </span>
+
+                        </li>
+
+                    {% else %}
+
+                        <li class="page-item">
+
+                            <a
+                                class="page-link"
+                                href="{{ url_for('main.home', page=page_num, search=search) }}"
+                            >
+                                {{ page_num }}
+                            </a>
+
+                        </li>
+
+                    {% endif %}
+
+                {% else %}
+
+                    <li class="page-item disabled">
+
+                        <span class="page-link">
+                            ...
+                        </span>
+
+                    </li>
+
+                {% endif %}
+
+            {% endfor %}
+
+
+            {% if posts.has_next %}
+
+                <li class="page-item">
+
+                    <a
+                        class="page-link"
+                        href="{{ url_for('main.home', page=posts.next_num, search=search) }}"
+                    >
+                        Next
+                    </a>
+
+                </li>
+
+            {% else %}
+
+                <li class="page-item disabled">
+
+                    <span class="page-link">
+                        Next
+                    </span>
+
+                </li>
+
+            {% endif %}
+
+        </ul>
+
+    </nav>
+
 {% else %}
 
     {% if search %}
 
         <div class="alert alert-warning">
 
-            <h4>
-
-                No results found
-
-            </h4>
+            <h4>No results found</h4>
 
             <p>
 
@@ -175,9 +253,7 @@ Home
                 href="{{ url_for('main.home') }}"
                 class="btn btn-primary"
             >
-
                 View All Posts
-
             </a>
 
         </div>
@@ -186,11 +262,7 @@ Home
 
         <div class="alert alert-info">
 
-            <h4>
-
-                No posts yet!
-
-            </h4>
+            <h4>No posts yet!</h4>
 
             <p>
 
@@ -205,9 +277,7 @@ Home
                     href="{{ url_for('posts.create_post') }}"
                     class="btn btn-dark"
                 >
-
                     Create First Post
-
                 </a>
 
             {% endif %}

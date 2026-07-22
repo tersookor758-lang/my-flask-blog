@@ -23,33 +23,38 @@ def home():
         ""
     ).strip()
 
+    page = request.args.get(
+        "page",
+        1,
+        type=int
+    )
+
+    query = (
+        Post.query
+        .join(User)
+    )
+
     if search:
 
-        posts = (
-            Post.query
-            .join(User)
-            .filter(
-                or_(
-                    Post.title.ilike(f"%{search}%"),
-                    Post.content.ilike(f"%{search}%"),
-                    User.username.ilike(f"%{search}%")
-                )
+        query = query.filter(
+            or_(
+                Post.title.ilike(f"%{search}%"),
+                Post.content.ilike(f"%{search}%"),
+                User.username.ilike(f"%{search}%")
             )
-            .order_by(
-                Post.created_at.desc()
-            )
-            .all()
         )
 
-    else:
-
-        posts = (
-            Post.query
-            .order_by(
-                Post.created_at.desc()
-            )
-            .all()
+    posts = (
+        query
+        .order_by(
+            Post.created_at.desc()
         )
+        .paginate(
+            page=page,
+            per_page=5,
+            error_out=False
+        )
+    )
 
     return render_template(
         "index.html",
