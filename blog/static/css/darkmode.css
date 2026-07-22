@@ -1,0 +1,56 @@
+/* Dark Mode */
+
+body.dark-mode {
+    background-color: #121212;
+    color: #f1f1f1;
+    transition: 0.3s;
+}
+
+body.dark-mode .navbar,
+body.dark-mode footer {
+    background-color: #1b1b1b !important;
+}
+
+body.dark-mode .card {
+    background-color: #1e1e1e;
+    color: white;
+    border-color: #333;
+}
+
+body.dark-mode .card-header {
+    background-color: #252525;
+    color: white;
+}
+
+body.dark-mode .form-control,
+body.dark-mode textarea,
+body.dark-mode select {
+    background-color: #2a2a2a;
+    color: white;
+    border: 1px solid #555;
+}
+
+body.dark-mode .form-control::placeholder {
+    color: #aaa;
+}
+
+body.dark-mode .btn-outline-dark {
+    color: white;
+    border-color: white;
+}
+
+body.dark-mode a {
+    color: #7ab8ff;
+}
+
+body.dark-mode .alert {
+    color: white;
+}
+
+body.dark-mode hr {
+    border-color: #444;
+}
+
+body.dark-mode .text-muted {
+    color: #b5b5b5 !important;
+}
