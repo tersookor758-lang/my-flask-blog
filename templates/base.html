@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="light">
 
 <head>
 
@@ -11,9 +11,7 @@
     >
 
     <title>
-
         JP Blog | {% block title %}{% endblock %}
-
     </title>
 
     <link
@@ -21,12 +19,14 @@
         rel="stylesheet"
     >
 
+    <script>
+        const savedTheme = localStorage.getItem("theme") || "light";
+        document.documentElement.setAttribute("data-bs-theme", savedTheme);
+    </script>
+
     <style>
 
-        html{
-            transition: background-color .25s ease,color .25s ease;
-        }
-
+        html,
         body{
             transition: background-color .25s ease,color .25s ease;
         }
@@ -39,9 +39,10 @@
         .form-control,
         .form-select,
         .btn{
-            transition: background-color .25s ease,
-                        color .25s ease,
-                        border-color .25s ease;
+            transition:
+                background-color .25s ease,
+                color .25s ease,
+                border-color .25s ease;
         }
 
         img{
@@ -52,7 +53,7 @@
 
 </head>
 
-<body>
+<body class="bg-body text-body">
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
 
@@ -62,12 +63,8 @@
             class="navbar-brand fw-bold"
             href="{{ url_for('main.home') }}"
         >
-
             JP Blog
-
         </a>
-
-
 
         <button
             class="navbar-toggler"
@@ -75,21 +72,13 @@
             data-bs-toggle="collapse"
             data-bs-target="#navbarContent"
         >
-
             <span class="navbar-toggler-icon"></span>
-
         </button>
-
-
 
         <div
             class="collapse navbar-collapse"
             id="navbarContent"
         >
-
-
-
-            <!-- Search -->
 
             <form
                 class="d-flex mx-lg-auto my-3 my-lg-0"
@@ -109,16 +98,10 @@
                     class="btn btn-outline-light"
                     type="submit"
                 >
-
                     Search
-
                 </button>
 
             </form>
-
-
-
-            <!-- Navigation -->
 
             <div class="navbar-nav ms-lg-auto align-items-lg-center">
 
@@ -126,12 +109,8 @@
                     class="nav-link"
                     href="{{ url_for('main.home') }}"
                 >
-
                     Home
-
                 </a>
-
-
 
                 {% if current_user.is_authenticated %}
 
@@ -139,31 +118,21 @@
                         class="nav-link"
                         href="{{ url_for('posts.create_post') }}"
                     >
-
                         Create Post
-
                     </a>
-
-
 
                     <a
                         class="nav-link"
                         href="{{ url_for('profile.view_profile') }}"
                     >
-
                         {{ current_user.username }}
-
                     </a>
-
-
 
                     <a
                         class="nav-link"
                         href="{{ url_for('auth.logout') }}"
                     >
-
                         Logout
-
                     </a>
 
                 {% else %}
@@ -172,27 +141,17 @@
                         class="nav-link"
                         href="{{ url_for('auth.login') }}"
                     >
-
                         Login
-
                     </a>
-
-
 
                     <a
                         class="nav-link"
                         href="{{ url_for('auth.register') }}"
                     >
-
                         Register
-
                     </a>
 
                 {% endif %}
-
-
-
-                <!-- Dark Mode Toggle -->
 
                 <button
                     id="theme-toggle"
@@ -200,9 +159,7 @@
                     type="button"
                     title="Toggle Dark Mode"
                 >
-
                     🌙
-
                 </button>
 
             </div>
@@ -212,10 +169,6 @@
     </div>
 
 </nav>
-
-
-
-
 
 <div class="container mt-4">
 
@@ -243,31 +196,21 @@
 
     {% endwith %}
 
-
-
     {% block content %}
     {% endblock %}
 
 </div>
-
-
-
-
 
 <footer class="bg-dark text-white text-center py-3 mt-5">
 
     <div class="container">
 
         <p class="mb-1">
-
             &copy; 2026 JP Blog. All rights reserved.
-
         </p>
 
         <small>
-
             Built with Flask & Bootstrap
-
         </small>
 
     </div>
@@ -279,13 +222,11 @@
 <script>
 
     const html = document.documentElement;
-
     const toggle = document.getElementById("theme-toggle");
 
     function setTheme(theme){
 
         html.setAttribute("data-bs-theme", theme);
-
         localStorage.setItem("theme", theme);
 
         toggle.innerHTML = theme === "dark"
@@ -294,36 +235,21 @@
 
     }
 
-    const savedTheme = localStorage.getItem("theme");
-
-    if(savedTheme){
-
-        setTheme(savedTheme);
-
-    }else{
-
-        setTheme("light");
-
-    }
+    setTheme(localStorage.getItem("theme") || "light");
 
     toggle.addEventListener("click", function(){
 
         const current = html.getAttribute("data-bs-theme");
 
-        if(current === "dark"){
-
-            setTheme("light");
-
-        }else{
-
-            setTheme("dark");
-
-        }
+        setTheme(
+            current === "dark"
+                ? "light"
+                : "dark"
+        );
 
     });
 
 </script>
 
 </body>
-
 </html>
