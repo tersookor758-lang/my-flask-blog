@@ -2,6 +2,7 @@ import os
 
 from flask import Flask
 from flask_login import LoginManager
+from flask_migrate import Migrate
 
 from models import db, User
 
@@ -9,10 +10,12 @@ from models import db, User
 login_manager = LoginManager()
 login_manager.login_view = "auth.login"
 
+migrate = Migrate()
+
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    return db.session.get(User, int(user_id))
 
 
 def create_app():
@@ -43,14 +46,6 @@ def create_app():
     )
 
     # Flask request size limit (~1.1 GB)
-    #
-    # This allows:
-    # - Images up to 30 MB
-    # - Videos up to 1 GB
-    #
-    # Individual file validation is handled
-    # inside blog/posts.py.
-
     app.config["MAX_CONTENT_LENGTH"] = 1100 * 1024 * 1024
 
     os.makedirs(
@@ -65,6 +60,8 @@ def create_app():
     db.init_app(app)
 
     login_manager.init_app(app)
+
+    migrate.init_app(app, db)
 
     # =====================================
     # Register Blueprints
@@ -84,9 +81,6 @@ def create_app():
 
     from blog.likes import likes
     app.register_blueprint(likes)
-
-    from blog.users import users
-    app.register_blueprint(users)
 
     from blog.comments import comments
     app.register_blueprint(comments)
