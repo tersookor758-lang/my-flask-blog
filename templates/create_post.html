@@ -14,57 +14,125 @@ Create Post
 
             <div class="card-header bg-dark text-white">
 
-                <h3>Create New Post</h3>
+                <h3 class="mb-0">
+                    Create New Post
+                </h3>
 
             </div>
 
             <div class="card-body">
 
-                <form method="POST" enctype="multipart/form-data">
+                <form
+                    method="POST"
+                    enctype="multipart/form-data"
+                    id="createPostForm"
+                >
 
                     {{ form.hidden_tag() }}
+
+                    <!-- Title -->
 
                     <div class="mb-3">
 
                         {{ form.title.label(class="form-label") }}
 
-                        {{ form.title(class="form-control") }}
+                        {{ form.title(
+                            class="form-control",
+                            placeholder="Enter post title",
+                            required=True
+                        ) }}
 
                     </div>
+
+                    <!-- Content -->
 
                     <div class="mb-3">
 
                         {{ form.content.label(class="form-label") }}
 
-                        {{ form.content(class="form-control", rows="10") }}
+                        {{ form.content(
+                            class="form-control",
+                            rows="10",
+                            placeholder="Write your post here...",
+                            required=True
+                        ) }}
 
                     </div>
+
+                    <!-- Category -->
 
                     <div class="mb-3">
 
                         {{ form.category.label(class="form-label") }}
 
-                        {{ form.category(class="form-select") }}
+                        {{ form.category(
+                            class="form-select"
+                        ) }}
+
+                        <small class="text-muted">
+                            Select a category for your post (optional).
+                        </small>
 
                     </div>
+
+                    <!-- Image -->
 
                     <div class="mb-3">
 
                         {{ form.image.label(class="form-label") }}
 
-                        {{ form.image(class="form-control") }}
+                        {{ form.image(
+                            class="form-control",
+                            accept="image/*"
+                        ) }}
+
+                        <small class="text-muted">
+                            Supported formats:
+                            JPG, JPEG, PNG, GIF, WEBP.
+                            Maximum size: 50 MB.
+                        </small>
 
                     </div>
 
-                    <div class="mb-3">
+                    <!-- Video -->
+
+                    <div class="mb-4">
 
                         {{ form.video.label(class="form-label") }}
 
-                        {{ form.video(class="form-control") }}
+                        {{ form.video(
+                            class="form-control",
+                            accept="video/*"
+                        ) }}
+
+                        <small class="text-muted">
+                            Supported formats:
+                            MP4, MOV, AVI, MKV, WEBM.
+                            Maximum size: 1.5 GB.
+                        </small>
 
                     </div>
 
-                    {{ form.submit(class="btn btn-dark") }}
+                    <!-- Buttons -->
+
+                    <div class="d-flex gap-2">
+
+                        <button
+                            type="submit"
+                            class="btn btn-dark"
+                            id="submitBtn"
+                        >
+                            Publish Post
+                        </button>
+
+                        <a
+                            href="{{ url_for('main.home') }}"
+                            class="btn btn-secondary"
+                        >
+                            Cancel
+                        </a>
+
+                    </div>
 
                 </form>
 
@@ -75,5 +143,22 @@ Create Post
     </div>
 
 </div>
+
+<script>
+
+document.getElementById("createPostForm").addEventListener(
+    "submit",
+    function () {
+
+        const button = document.getElementById("submitBtn");
+
+        button.disabled = true;
+
+        button.innerHTML = "Uploading...";
+
+    }
+);
+
+</script>
 
 {% endblock %}
