@@ -6,322 +6,318 @@
 
 {% block content %}
 
-<div class="mb-4">
+<div class="row justify-content-center">
 
-    <a
-        href="{{ url_for('main.home') }}"
-        class="btn btn-outline-secondary"
-    >
-        ← Back to Home
-    </a>
+    <div class="col-lg-9">
 
-</div>
+        <div class="card shadow-sm mb-4">
 
-<div class="card shadow-sm">
+            {% if post.image %}
 
-    <div class="card-body">
-
-        <h2 class="mb-3">
-            {{ post.title }}
-        </h2>
-
-        <p class="text-muted">
-
-            By
-
-            <a
-                href="{{ url_for('profile.user_profile', username=post.author.username) }}"
-                class="text-decoration-none fw-bold"
+            <img
+                src="{{ url_for('static', filename='uploads/' + post.image) }}"
+                class="card-img-top"
+                style="max-height:600px; object-fit:cover;"
+                alt="{{ post.title }}"
             >
-                {{ post.author.username }}
-            </a>
-
-            |
-
-            {{ post.created_at.strftime("%d %B %Y") }}
-
-            {% if post.category %}
-
-                |
-
-                <span class="badge bg-secondary">
-                    {{ post.category.name }}
-                </span>
 
             {% endif %}
 
-        </p>
+            {% if post.video %}
 
-        <hr>
-        <hr class="my-4">
-
-<h4 class="mb-3">
-    Comments ({{ total_comments }})
-</h4>
-
-{% if current_user.is_authenticated %}
-
-<div class="card mb-4">
-
-    <div class="card-body">
-
-        <form
-            method="POST"
-            action="{{ url_for('posts.add_comment', post_id=post.id) }}"
-        >
-
-            {{ comment_form.hidden_tag() }}
-
-            <div class="mb-3">
-
-                {{ comment_form.content(
-                    class="form-control",
-                    rows="4",
-                    placeholder="Write a comment..."
-                ) }}
-
-            </div>
-
-            <button
-                type="submit"
-                class="btn btn-primary"
+            <video
+                controls
+                class="w-100"
+                style="max-height:600px;"
             >
-                Post Comment
-            </button>
 
-        </form>
+                <source
+                    src="{{ url_for('static', filename='uploads/' + post.video) }}"
+                >
 
-    </div>
+                Your browser does not support video playback.
 
-</div>
+            </video>
 
-{% else %}
+            {% endif %}
 
-<div class="alert alert-info">
+            <div class="card-body">
 
-    Please
-    <a href="{{ url_for('auth.login') }}">
-        login
-    </a>
-    to comment.
+                <h1 class="mb-3">
 
-</div>
+                    {{ post.title }}
 
-{% endif %}
+                </h1>
 
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
 
-{% if comments %}
+                    <span>
 
-    {% for comment in comments %}
+                        By
 
-    <div class="card mb-3">
+                        <a
+                            href="{{ url_for('profile.user_profile', username=post.author.username) }}"
+                            class="text-decoration-none fw-semibold"
+                        >
+                            {{ post.author.username }}
+                        </a>
 
-        <div class="card-body">
+                    </span>
 
-            <div class="d-flex justify-content-between">
+                    <span class="text-muted">
 
-                <div>
+                        •
 
-                    <strong>
-                        {{ comment.author.username }}
-                    </strong>
+                    </span>
 
-                    <small class="text-muted">
+                    <span class="text-muted">
 
-                        {{ comment.created_at.strftime("%d %B %Y %H:%M") }}
+                        {{ post.created_at.strftime("%d %B %Y %I:%M %p") }}
 
-                    </small>
+                    </span>
+
+                    {% if post.category %}
+
+                    <span class="badge bg-secondary">
+
+                        {{ post.category.name }}
+
+                    </span>
+
+                    {% endif %}
+
+                </div>
+
+                <div class="d-flex flex-wrap gap-4 mb-4 text-muted">
+
+                    <span>
+
+                        ❤️ {{ total_post_likes }}
+                        Like{{ '' if total_post_likes == 1 else 's' }}
+
+                    </span>
+
+                    <span>
+
+                        💬 {{ total_comments }}
+                        Comment{{ '' if total_comments == 1 else 's' }}
+
+                    </span>
+
+                </div>
+
+                <hr>
+
+                <div class="fs-5 mb-4">
+
+                    {{ post.content|replace('\n','<br>')|safe }}
+
+                </div>
+
+                <div class="d-flex flex-wrap gap-2">
+
+                    {% if current_user.is_authenticated %}
+
+                    <form
+                        action="{{ url_for('likes.like_post', post_id=post.id) }}"
+                        method="POST"
+                    >
+
+                        {% set liked = post.likes
+                        |selectattr("user_id","equalto",current_user.id)
+                        |list %}
+
+                        <button
+                            class="btn btn-outline-danger"
+                            type="submit"
+                        >
+
+                            {% if liked %}
+
+                                ❤️ Unlike
+
+                            {% else %}
+
+                                🤍 Like
+
+                            {% endif %}
+
+                        </button>
+
+                    </form>
+
+                    {% endif %}
+
+                    {% if current_user.is_authenticated and current_user.id == post.user_id %}
+
+                    <a
+                        href="{{ url_for('posts.edit_post', post_id=post.id) }}"
+                        class="btn btn-warning"
+                    >
+                        Edit
+                    </a>
+
+                    <form
+                        action="{{ url_for('posts.delete_post', post_id=post.id) }}"
+                        method="POST"
+                    >
+
+                        <button
+                            class="btn btn-danger"
+                            onclick="return confirm('Delete this post?')"
+                        >
+                            Delete
+                        </button>
+
+                    </form>
+
+                    {% endif %}
 
                 </div>
 
             </div>
 
-            <p class="mt-3 mb-2">
-                {{ comment.content }}
-                <div class="mt-2 d-flex align-items-center gap-2">
+        </div>
+                <div class="card shadow-sm">
 
-    {% if current_user.is_authenticated %}
+            <div class="card-header">
 
-    <form
-        action="{{ url_for('likes.like_comment', comment_id=comment.id) }}"
-        method="POST"
-        class="d-inline"
-    >
+                <h4 class="mb-0">
 
-        <button
-            type="submit"
-            class="btn btn-outline-danger btn-sm"
-        >
+                    Comments ({{ total_comments }})
 
-            {% set liked = namespace(value=False) %}
+                </h4>
 
-            {% for like in comment.likes %}
+            </div>
 
-                {% if like.user_id == current_user.id %}
-                    {% set liked.value = True %}
-                {% endif %}
-
-            {% endfor %}
-
-            {% if liked.value %}
-                ❤️ Unlike
-            {% else %}
-                🤍 Like
-            {% endif %}
-
-        </button>
-
-    </form>
-
-    {% endif %}
-
-    <small class="text-muted">
-
-        ❤️ {{ comment.likes|length }}
-        Like{{ '' if comment.likes|length == 1 else 's' }}
-
-    </small>
-
-</div>
-            </p>
-
-            <div class="d-flex flex-wrap gap-2">
+            <div class="card-body">
 
                 {% if current_user.is_authenticated %}
 
                 <form
-                    action="{{ url_for('likes.like_comment', comment_id=comment.id) }}"
+                    action="{{ url_for('posts.add_comment', post_id=post.id) }}"
                     method="POST"
-                >
-
-                    <button
-                        class="btn btn-sm btn-outline-primary"
-                    >
-                        👍 Like
-                    </button>
-
-                </form>
-
-                <button
-                    class="btn btn-sm btn-outline-secondary"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#reply{{ comment.id }}"
-                >
-                    Reply
-                </button>
-
-                {% endif %}
-
-                {% if current_user.is_authenticated and current_user.id == comment.user_id %}
-
-                <form
-                    action="{{ url_for('comments.delete_comment', comment_id=comment.id) }}"
-                    method="POST"
-                >
-
-                    <button
-                        class="btn btn-sm btn-outline-danger"
-                        onclick="return confirm('Delete this comment?')"
-                    >
-                        Delete
-                    </button>
-
-                </form>
-
-                {% endif %}
-
-            </div>
-
-            <div
-                class="collapse mt-3"
-                id="reply{{ comment.id }}"
-            >
-
-                <form
-                    method="POST"
-                    action="{{ url_for('posts.reply_comment', comment_id=comment.id) }}"
+                    class="mb-4"
                 >
 
                     {{ comment_form.hidden_tag() }}
 
-                    <div class="mb-2">
+                    <div class="mb-3">
 
                         {{ comment_form.content(
                             class="form-control",
-                            rows="2",
-                            placeholder="Write your reply..."
+                            rows="3",
+                            placeholder="Write a comment..."
                         ) }}
 
                     </div>
 
                     <button
-                        class="btn btn-sm btn-primary"
+                        class="btn btn-dark"
+                        type="submit"
                     >
-                        Reply
+                        Post Comment
                     </button>
 
                 </form>
 
-            </div>
+                <hr>
 
+                {% endif %}
 
-            {% if comment.replies %}
+                {% if comments %}
 
-            <div class="ms-5 mt-4">
+                {% for comment in comments %}
 
-                {% for reply in comment.replies %}
-
-                <div class="card mb-2">
+                <div class="card mb-3">
 
                     <div class="card-body">
 
-                        <strong>
+                        <div class="d-flex justify-content-between">
 
-                            {{ reply.author.username }}
+                            <div>
 
-                        </strong>
+                                <strong>
 
-                        <small class="text-muted">
+                                    {{ comment.author.username }}
 
-                            {{ reply.created_at.strftime("%d %B %Y %H:%M") }}
+                                </strong>
 
-                        </small>
+                                <small class="text-muted">
 
-                        <p class="mt-2 mb-2">
+                                    •
+                                    {{ comment.created_at.strftime("%d %b %Y %I:%M %p") }}
 
-                            {{ reply.content }}
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                        <p class="mt-3 mb-3">
+
+                            {{ comment.content }}
 
                         </p>
 
-                        <div class="d-flex gap-2">
+                        <div class="d-flex flex-wrap gap-2">
 
                             {% if current_user.is_authenticated %}
 
                             <form
-                                action="{{ url_for('likes.like_comment', comment_id=reply.id) }}"
+                                action="{{ url_for('likes.like_comment', comment_id=comment.id) }}"
                                 method="POST"
                             >
 
+                                {% set liked = comment.likes
+                                |selectattr("user_id","equalto",current_user.id)
+                                |list %}
+
                                 <button
-                                    class="btn btn-sm btn-outline-primary"
+                                    type="submit"
+                                    class="btn btn-sm btn-outline-danger"
                                 >
-                                    👍 Like
+
+                                    {% if liked %}
+
+                                        ❤️ Unlike
+
+                                    {% else %}
+
+                                        🤍 Like
+
+                                    {% endif %}
+
                                 </button>
 
                             </form>
 
+                            <span class="align-self-center text-muted">
+
+                                ❤️ {{ comment.likes|length }}
+
+                            </span>
+
+                            <button
+                                class="btn btn-sm btn-outline-secondary"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#reply{{ comment.id }}"
+                            >
+                                Reply
+                            </button>
+
                             {% endif %}
 
-                            {% if current_user.is_authenticated and current_user.id == reply.user_id %}
+                            {% if current_user.is_authenticated and current_user.id == comment.user_id %}
 
                             <form
-                                action="{{ url_for('comments.delete_comment', comment_id=reply.id) }}"
+                                action="{{ url_for('comments.delete_comment', comment_id=comment.id) }}"
                                 method="POST"
                             >
 
                                 <button
                                     class="btn btn-sm btn-outline-danger"
-                                    onclick="return confirm('Delete this reply?')"
+                                    onclick="return confirm('Delete this comment?')"
                                 >
                                     Delete
                                 </button>
@@ -332,78 +328,197 @@
 
                         </div>
 
+                        <div
+                            class="collapse mt-3"
+                            id="reply{{ comment.id }}"
+                        >
+
+                            <form
+                                action="{{ url_for('posts.reply_comment', comment_id=comment.id) }}"
+                                method="POST"
+                            >
+
+                                {{ comment_form.hidden_tag() }}
+
+                                <textarea
+                                    name="content"
+                                    class="form-control mb-2"
+                                    rows="2"
+                                    placeholder="Write your reply..."
+                                    required
+                                ></textarea>
+
+                                <button
+                                    class="btn btn-primary btn-sm"
+                                    type="submit"
+                                >
+                                    Reply
+                                </button>
+
+                            </form>
+
+                        </div>
+                                                {% if comment.replies %}
+
+                        <div class="mt-4 ms-4 border-start ps-3">
+
+                            <h6 class="text-muted mb-3">
+
+                                Replies
+
+                            </h6>
+
+
+                            {% for reply in comment.replies %}
+
+                            <div class="card mb-3">
+
+                                <div class="card-body">
+
+                                    <div>
+
+                                        <strong>
+
+                                            {{ reply.author.username }}
+
+                                        </strong>
+
+                                        <small class="text-muted">
+
+                                            •
+                                            {{ reply.created_at.strftime("%d %b %Y %I:%M %p") }}
+
+                                        </small>
+
+                                    </div>
+
+
+                                    <p class="mt-3 mb-3">
+
+                                        {{ reply.content }}
+
+                                    </p>
+
+
+                                    <div class="d-flex flex-wrap gap-2">
+
+
+                                        {% if current_user.is_authenticated %}
+
+                                        <form
+                                            action="{{ url_for('likes.like_comment', comment_id=reply.id) }}"
+                                            method="POST"
+                                        >
+
+                                            {% set reply_liked = reply.likes
+                                            |selectattr("user_id","equalto",current_user.id)
+                                            |list %}
+
+
+                                            <button
+                                                type="submit"
+                                                class="btn btn-sm btn-outline-danger"
+                                            >
+
+                                                {% if reply_liked %}
+
+                                                    ❤️ Unlike
+
+                                                {% else %}
+
+                                                    🤍 Like
+
+                                                {% endif %}
+
+                                            </button>
+
+
+                                        </form>
+
+
+                                        <span class="align-self-center text-muted">
+
+                                            ❤️ {{ reply.likes|length }}
+
+                                        </span>
+
+                                        {% endif %}
+
+
+
+                                        {% if current_user.is_authenticated and current_user.id == reply.user_id %}
+
+                                        <form
+                                            action="{{ url_for('comments.delete_comment', comment_id=reply.id) }}"
+                                            method="POST"
+                                        >
+
+                                            <button
+                                                class="btn btn-sm btn-outline-danger"
+                                                onclick="return confirm('Delete this reply?')"
+                                            >
+
+                                                Delete
+
+                                            </button>
+
+
+                                        </form>
+
+                                        {% endif %}
+
+
+                                    </div>
+
+
+                                </div>
+
+                            </div>
+
+
+                            {% endfor %}
+
+
+                        </div>
+
+
+                        {% endif %}
+
+
                     </div>
+
 
                 </div>
 
+
                 {% endfor %}
+
+
+                {% else %}
+
+
+                <div class="text-center text-muted py-4">
+
+                    No comments yet.
+
+                    Be the first to comment.
+
+                </div>
+
+
+                {% endif %}
+
 
             </div>
 
-            {% endif %}
 
         </div>
 
+
     </div>
 
-    {% endfor %}
-
-{% else %}
-
-<div class="alert alert-secondary">
-
-    No comments yet.
-    Be the first to comment!
 
 </div>
 
-{% endif %}
 
 {% endblock %}
-<hr>
-
-<div class="d-flex align-items-center gap-2 mb-3">
-
-    {% if current_user.is_authenticated %}
-
-    <form
-        action="{{ url_for('likes.like_post', post_id=post.id) }}"
-        method="POST"
-        class="d-inline"
-    >
-
-        <button
-            type="submit"
-            class="btn btn-outline-danger btn-sm"
-        >
-
-            {% set liked = namespace(value=False) %}
-
-            {% for like in post.likes %}
-
-                {% if like.user_id == current_user.id %}
-                    {% set liked.value = True %}
-                {% endif %}
-
-            {% endfor %}
-
-            {% if liked.value %}
-                ❤️ Unlike
-            {% else %}
-                🤍 Like
-            {% endif %}
-
-        </button>
-
-    </form>
-
-    {% endif %}
-
-    <span class="text-muted">
-
-        ❤️ {{ post.likes|length }}
-        Like{{ '' if post.likes|length == 1 else 's' }}
-
-    </span>
-
-</div>
