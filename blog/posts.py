@@ -70,6 +70,14 @@ def save_uploaded_file(file):
     if file is None:
         return None
 
+    # Happens when editing a post and WTForms
+    # passes the existing filename instead of a file.
+    if isinstance(file, str):
+        return None
+
+    if not hasattr(file, "filename"):
+        return None
+
     if file.filename == "":
         return None
 
@@ -179,6 +187,8 @@ def create_post():
         "create_post.html",
         form=form
     )
+
+
 # ==========================================================
 # VIEW POST
 # ==========================================================
@@ -218,8 +228,6 @@ def view_post(post_id):
         total_comments=total_comments,
         total_post_likes=total_post_likes
     )
-
-
 # ==========================================================
 # EDIT POST
 # ==========================================================
@@ -236,7 +244,7 @@ def edit_post(post_id):
     if post.author != current_user:
         abort(403)
 
-    form = PostForm(obj=post)
+    form = PostForm()
 
     form.category.choices = [
 
@@ -251,6 +259,10 @@ def edit_post(post_id):
 
     if request.method == "GET":
 
+        form.title.data = post.title
+
+        form.content.data = post.content
+
         form.category.data = post.category_id
 
     if form.validate_on_submit():
@@ -261,25 +273,29 @@ def edit_post(post_id):
 
         post.category_id = form.category.data
 
-        if form.image.data:
+        new_image = save_uploaded_file(
+            form.image.data
+        )
+
+        if new_image:
 
             delete_uploaded_file(
                 post.image
             )
 
-            post.image = save_uploaded_file(
-                form.image.data
-            )
+            post.image = new_image
 
-        if form.video.data:
+        new_video = save_uploaded_file(
+            form.video.data
+        )
+
+        if new_video:
 
             delete_uploaded_file(
                 post.video
             )
 
-            post.video = save_uploaded_file(
-                form.video.data
-            )
+            post.video = new_video
 
         db.session.commit()
 
@@ -336,7 +352,9 @@ def delete_post(post_id):
     )
 
     return redirect(
-        url_for("main.home")
+        url_for(
+            "main.home"
+        )
     )
 # ==========================================================
 # ADD COMMENT
@@ -455,7 +473,7 @@ def reply_comment(comment_id):
 
 
 # ==========================================================
-# DELETE IMAGE FROM POST
+# REMOVE POST IMAGE
 # ==========================================================
 
 @posts.route(
@@ -492,7 +510,7 @@ def remove_post_image(post_id):
 
 
 # ==========================================================
-# DELETE VIDEO FROM POST
+# REMOVE POST VIDEO
 # ==========================================================
 
 @posts.route(
