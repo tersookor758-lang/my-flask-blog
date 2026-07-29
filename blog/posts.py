@@ -38,13 +38,47 @@ posts = Blueprint(
 
 
 # ==========================================================
-# Helper
+# Upload Configuration
+# ==========================================================
+
+ALLOWED_IMAGE_EXTENSIONS = {
+    "jpg",
+    "jpeg",
+    "png",
+    "gif",
+    "webp"
+}
+
+ALLOWED_VIDEO_EXTENSIONS = {
+    "mp4",
+    "mov",
+    "avi",
+    "mkv",
+    "webm"
+}
+
+MAX_IMAGE_SIZE = 50 * 1024 * 1024          # 50 MB
+MAX_VIDEO_SIZE = 1536 * 1024 * 1024        # 1.5 GB
+
+
+# ==========================================================
+# Helper Functions
 # ==========================================================
 
 def save_uploaded_file(file):
 
-    if not file or file.filename == "":
+    if file is None:
         return None
+
+    if file.filename == "":
+        return None
+
+    upload_folder = current_app.config["UPLOAD_FOLDER"]
+
+    os.makedirs(
+        upload_folder,
+        exist_ok=True
+    )
 
     filename = (
         f"{uuid.uuid4()}_"
@@ -53,12 +87,26 @@ def save_uploaded_file(file):
 
     file.save(
         os.path.join(
-            current_app.config["UPLOAD_FOLDER"],
+            upload_folder,
             filename
         )
     )
 
     return filename
+
+
+def delete_uploaded_file(filename):
+
+    if not filename:
+        return
+
+    path = os.path.join(
+        current_app.config["UPLOAD_FOLDER"],
+        filename
+    )
+
+    if os.path.exists(path):
+        os.remove(path)
 
 
 # ==========================================================
@@ -75,30 +123,44 @@ def create_post():
     form = PostForm()
 
     form.category.choices = [
-        (c.id, c.name)
-        for c in Category.query.order_by(Category.name).all()
+
+        (category.id, category.name)
+
+        for category in
+        Category.query.order_by(
+            Category.name
+        ).all()
+
     ]
 
     if form.validate_on_submit():
 
-        image = save_uploaded_file(
+        image_filename = save_uploaded_file(
             form.image.data
         )
 
-        video = save_uploaded_file(
+        video_filename = save_uploaded_file(
             form.video.data
         )
 
         post = Post(
+
             title=form.title.data,
+
             content=form.content.data,
-            image=image,
-            video=video,
+
+            image=image_filename,
+
+            video=video_filename,
+
             author=current_user,
+
             category_id=form.category.data
+
         )
 
         db.session.add(post)
+
         db.session.commit()
 
         flash(
@@ -117,31 +179,44 @@ def create_post():
         "create_post.html",
         form=form
     )
-
-
 # ==========================================================
 # VIEW POST
 # ==========================================================
 
-@posts.route("/post/<int:post_id>")
+@posts.route(
+    "/post/<int:post_id>"
+)
 def view_post(post_id):
 
     post = Post.query.get_or_404(post_id)
 
-    form = CommentForm()
+    comment_form = CommentForm()
 
-    top_level_comments = Comment.query.filter_by(
-        post_id=post.id,
-        parent_id=None
-    ).order_by(
-        Comment.created_at.asc()
-    ).all()
+    comments = (
+        Comment.query
+        .filter_by(
+            post_id=post.id,
+            parent_id=None
+        )
+        .order_by(
+            Comment.created_at.asc()
+        )
+        .all()
+    )
+
+    total_comments = Comment.query.filter_by(
+        post_id=post.id
+    ).count()
+
+    total_post_likes = len(post.likes)
 
     return render_template(
         "view_post.html",
         post=post,
-        form=form,
-        comments=top_level_comments
+        comments=comments,
+        comment_form=comment_form,
+        total_comments=total_comments,
+        total_post_likes=total_post_likes
     )
 
 
@@ -164,30 +239,33 @@ def edit_post(post_id):
     form = PostForm(obj=post)
 
     form.category.choices = [
-        (c.id, c.name)
-        for c in Category.query.order_by(Category.name).all()
+
+        (category.id, category.name)
+
+        for category in
+        Category.query.order_by(
+            Category.name
+        ).all()
+
     ]
 
     if request.method == "GET":
+
         form.category.data = post.category_id
 
     if form.validate_on_submit():
 
         post.title = form.title.data
+
         post.content = form.content.data
+
         post.category_id = form.category.data
 
         if form.image.data:
 
-            if post.image:
-
-                old = os.path.join(
-                    current_app.config["UPLOAD_FOLDER"],
-                    post.image
-                )
-
-                if os.path.exists(old):
-                    os.remove(old)
+            delete_uploaded_file(
+                post.image
+            )
 
             post.image = save_uploaded_file(
                 form.image.data
@@ -195,15 +273,9 @@ def edit_post(post_id):
 
         if form.video.data:
 
-            if post.video:
-
-                old = os.path.join(
-                    current_app.config["UPLOAD_FOLDER"],
-                    post.video
-                )
-
-                if os.path.exists(old):
-                    os.remove(old)
+            delete_uploaded_file(
+                post.video
+            )
 
             post.video = save_uploaded_file(
                 form.video.data
@@ -228,6 +300,8 @@ def edit_post(post_id):
         form=form,
         post=post
     )
+
+
 # ==========================================================
 # DELETE POST
 # ==========================================================
@@ -244,29 +318,16 @@ def delete_post(post_id):
     if post.author != current_user:
         abort(403)
 
-    # Delete uploaded image
-    if post.image:
+    delete_uploaded_file(
+        post.image
+    )
 
-        image_path = os.path.join(
-            current_app.config["UPLOAD_FOLDER"],
-            post.image
-        )
-
-        if os.path.exists(image_path):
-            os.remove(image_path)
-
-    # Delete uploaded video
-    if post.video:
-
-        video_path = os.path.join(
-            current_app.config["UPLOAD_FOLDER"],
-            post.video
-        )
-
-        if os.path.exists(video_path):
-            os.remove(video_path)
+    delete_uploaded_file(
+        post.video
+    )
 
     db.session.delete(post)
+
     db.session.commit()
 
     flash(
@@ -277,8 +338,6 @@ def delete_post(post_id):
     return redirect(
         url_for("main.home")
     )
-
-
 # ==========================================================
 # ADD COMMENT
 # ==========================================================
@@ -297,7 +356,7 @@ def add_comment(post_id):
     if not form.validate_on_submit():
 
         flash(
-            "Please enter a comment.",
+            "Comment cannot be empty.",
             "danger"
         )
 
@@ -309,12 +368,17 @@ def add_comment(post_id):
         )
 
     comment = Comment(
+
         content=form.content.data,
+
         author=current_user,
+
         post=post
+
     )
 
     db.session.add(comment)
+
     db.session.commit()
 
     flash(
@@ -341,7 +405,9 @@ def add_comment(post_id):
 @login_required
 def reply_comment(comment_id):
 
-    parent_comment = Comment.query.get_or_404(comment_id)
+    parent_comment = Comment.query.get_or_404(
+        comment_id
+    )
 
     form = CommentForm()
 
@@ -360,13 +426,19 @@ def reply_comment(comment_id):
         )
 
     reply = Comment(
+
         content=form.content.data,
+
         author=current_user,
+
         post_id=parent_comment.post_id,
+
         parent_id=parent_comment.id
+
     )
 
     db.session.add(reply)
+
     db.session.commit()
 
     flash(
@@ -380,92 +452,77 @@ def reply_comment(comment_id):
             post_id=parent_comment.post_id
         )
     )
+
+
 # ==========================================================
-# VIEW POST
+# DELETE IMAGE FROM POST
 # ==========================================================
 
-@posts.route("/post/<int:post_id>")
-def view_post(post_id):
+@posts.route(
+    "/post/<int:post_id>/remove-image",
+    methods=["POST"]
+)
+@login_required
+def remove_post_image(post_id):
 
     post = Post.query.get_or_404(post_id)
 
-    comment_form = CommentForm()
+    if post.author != current_user:
+        abort(403)
 
-    comments = (
-        Comment.query
-        .filter_by(
-            post_id=post.id,
-            parent_id=None
-        )
-        .order_by(Comment.created_at.asc())
-        .all()
+    delete_uploaded_file(
+        post.image
     )
 
-    total_comments = Comment.query.filter_by(
-        post_id=post.id
-    ).count()
+    post.image = None
 
-    total_post_likes = len(post.likes)
+    db.session.commit()
 
-    return render_template(
-        "view_post.html",
-        post=post,
-        comments=comments,
-        comment_form=comment_form,
-        total_comments=total_comments,
-        total_post_likes=total_post_likes
-    )
-# ==========================================================
-# Upload Configuration
-# ==========================================================
-
-ALLOWED_IMAGE_EXTENSIONS = {
-    "jpg",
-    "jpeg",
-    "png",
-    "gif",
-    "webp"
-}
-
-ALLOWED_VIDEO_EXTENSIONS = {
-    "mp4",
-    "mov",
-    "avi",
-    "mkv",
-    "webm"
-}
-
-MAX_IMAGE_SIZE = 50 * 1024 * 1024          # 50 MB
-MAX_VIDEO_SIZE = 1536 * 1024 * 1024        # 1.5 GB
-# ==========================================================
-# SAVE UPLOADED FILE
-# ==========================================================
-
-def save_uploaded_file(file):
-
-    if not file:
-        return None
-
-    if file.filename == "":
-        return None
-
-    upload_folder = current_app.config["UPLOAD_FOLDER"]
-
-    os.makedirs(
-        upload_folder,
-        exist_ok=True
+    flash(
+        "Image removed successfully.",
+        "success"
     )
 
-    filename = (
-        f"{uuid.uuid4()}_"
-        f"{secure_filename(file.filename)}"
-    )
-
-    file.save(
-        os.path.join(
-            upload_folder,
-            filename
+    return redirect(
+        url_for(
+            "posts.edit_post",
+            post_id=post.id
         )
     )
 
-    return filename
+
+# ==========================================================
+# DELETE VIDEO FROM POST
+# ==========================================================
+
+@posts.route(
+    "/post/<int:post_id>/remove-video",
+    methods=["POST"]
+)
+@login_required
+def remove_post_video(post_id):
+
+    post = Post.query.get_or_404(post_id)
+
+    if post.author != current_user:
+        abort(403)
+
+    delete_uploaded_file(
+        post.video
+    )
+
+    post.video = None
+
+    db.session.commit()
+
+    flash(
+        "Video removed successfully.",
+        "success"
+    )
+
+    return redirect(
+        url_for(
+            "posts.edit_post",
+            post_id=post.id
+        )
+    )
