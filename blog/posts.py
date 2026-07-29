@@ -437,3 +437,35 @@ ALLOWED_VIDEO_EXTENSIONS = {
 
 MAX_IMAGE_SIZE = 50 * 1024 * 1024          # 50 MB
 MAX_VIDEO_SIZE = 1536 * 1024 * 1024        # 1.5 GB
+# ==========================================================
+# SAVE UPLOADED FILE
+# ==========================================================
+
+def save_uploaded_file(file):
+
+    if not file:
+        return None
+
+    if file.filename == "":
+        return None
+
+    upload_folder = current_app.config["UPLOAD_FOLDER"]
+
+    os.makedirs(
+        upload_folder,
+        exist_ok=True
+    )
+
+    filename = (
+        f"{uuid.uuid4()}_"
+        f"{secure_filename(file.filename)}"
+    )
+
+    file.save(
+        os.path.join(
+            upload_folder,
+            filename
+        )
+    )
+
+    return filename
