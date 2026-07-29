@@ -1,353 +1,420 @@
 {% extends "base.html" %}
 
+
 {% block title %}
-Profile
+
+{{ user.username }}'s Profile
+
 {% endblock %}
+
+
 
 {% block content %}
 
-<div class="container">
 
-    <div class="card shadow-sm mb-4">
 
-        <div class="card-body text-center">
+<div class="row justify-content-center">
 
-            {% if user.profile_picture %}
 
-                <img
-                    src="{{ url_for('static', filename='uploads/' ~ user.profile_picture) }}"
-                    class="rounded-circle mb-3"
-                    width="150"
-                    height="150"
-                    style="object-fit: cover;"
-                    alt="Profile Picture"
-                >
+    <div class="col-lg-9">
 
-            {% else %}
 
-                <img
-                    src="{{ url_for('static', filename='images/default.png') }}"
-                    class="rounded-circle mb-3"
-                    width="150"
-                    height="150"
-                    style="object-fit: cover;"
-                    alt="Default Profile Picture"
-                >
 
-            {% endif %}
+        <div class="card shadow-sm mb-4">
 
-            <h2>{{ user.username }}</h2>
 
-            {% if user.first_name or user.last_name %}
+            <div class="card-body text-center py-5">
 
-                <h5>
 
-                    {{ user.first_name }}
-                    {{ user.last_name }}
+                <div class="mb-3">
 
-                </h5>
 
-            {% endif %}
-
-            <p class="text-muted">
-
-                {{ user.bio if user.bio else "No bio added yet." }}
-
-            </p>
-
-            {% if user.location %}
-
-                <p>
-
-                    📍 {{ user.location }}
-
-                </p>
-
-            {% endif %}
-
-            {% if user.website %}
-
-                <p>
-
-                    🌐
-
-                    <a
-                        href="{{ user.website }}"
-                        target="_blank"
-                        rel="noopener noreferrer"
+                    <div
+                        class="rounded-circle bg-dark text-white d-inline-flex align-items-center justify-content-center"
+                        style="width:100px;height:100px;font-size:40px;"
                     >
 
-                        {{ user.website }}
+                        {{ user.username[0]|upper }}
 
-                    </a>
+                    </div>
+
+
+                </div>
+
+
+
+                <h2 class="mb-1">
+
+                    {{ user.username }}
+
+                </h2>
+
+
+
+                {% if user.email %}
+
+                <p class="text-muted mb-3">
+
+                    {{ user.email }}
 
                 </p>
 
-            {% endif %}
+                {% endif %}
 
-            <p class="text-muted">
 
-                Joined:
-                {{ user.created_at.strftime("%d %B %Y") }}
 
-            </p>
 
-            <hr>
+                <div class="d-flex justify-content-center gap-4 mb-3">
 
-            <div class="row text-center">
 
-                <div class="col">
+                    <div>
 
-                    <h5>{{ user.posts|length }}</h5>
+                        <h5 class="mb-0">
 
-                    <small class="text-muted">
-                        Posts
-                    </small>
-
-                </div>
-
-                <div class="col">
-
-                    <h5>{{ user.comments|length }}</h5>
-
-                    <small class="text-muted">
-                        Comments
-                    </small>
-
-                </div>
-
-                <div class="col">
-
-                    <h5>
-
-                        {% set likes = namespace(total=0) %}
-
-                        {% for post in user.posts %}
-
-                            {% set likes.total = likes.total + post.likes|length %}
-
-                        {% endfor %}
-
-                        {{ likes.total }}
-
-                    </h5>
-
-                    <small class="text-muted">
-                        Likes
-                    </small>
-
-                </div>
-
-            </div>
-
-            {% if current_user.is_authenticated and current_user.id == user.id %}
-
-                <hr>
-
-                <a
-                    href="{{ url_for('profile.edit_profile') }}"
-                    class="btn btn-primary"
-                >
-                    Edit Profile
-                </a>
-
-            {% endif %}
-
-        </div>
-
-    </div>
-
-    <div class="card shadow-sm mb-4">
-
-        <div class="card-header">
-
-            <h4 class="mb-0">
-
-                Posts by {{ user.username }}
-
-            </h4>
-
-        </div>
-
-        <div class="card-body">
-
-            {% if user.posts %}
-
-                {% for post in user.posts|sort(attribute="created_at", reverse=True) %}
-
-                    <div class="border-bottom pb-3 mb-3">
-
-                        <h5>
-
-                            <a
-                                href="{{ url_for('posts.view_post', post_id=post.id) }}"
-                                class="text-decoration-none"
-                            >
-                                {{ post.title }}
-                            </a>
+                            {{ posts|length }}
 
                         </h5>
 
                         <small class="text-muted">
 
-                            {{ post.created_at.strftime("%d %B %Y") }}
+                            Posts
 
                         </small>
 
-                        <p class="mt-2">
+                    </div>
 
-                            {{ post.content|truncate(180) }}
 
-                        </p>
+
+                    <div>
+
+                        <h5 class="mb-0">
+
+                            {{ total_likes }}
+
+                        </h5>
+
+                        <small class="text-muted">
+
+                            Likes
+
+                        </small>
 
                     </div>
 
-                {% endfor %}
 
-            {% else %}
 
-                <div class="alert alert-info">
+                    <div>
 
-                    No posts yet.
+                        <h5 class="mb-0">
+
+                            {{ total_comments }}
+
+                        </h5>
+
+                        <small class="text-muted">
+
+                            Comments
+
+                        </small>
+
+                    </div>
+
 
                 </div>
+                                {% if current_user.is_authenticated and current_user.id == user.id %}
 
-            {% endif %}
+                <a
+                    href="{{ url_for('profile.edit_profile') }}"
+                    class="btn btn-dark"
+                >
+
+                    Edit Profile
+
+                </a>
+
+                {% endif %}
+
+
+            </div>
+
 
         </div>
 
-    </div>
 
-    {% if edit_mode %}
 
-    <div class="card shadow-sm">
 
-        <div class="card-header">
 
-            <h3 class="mb-0">
+        <div class="card shadow-sm mb-4">
 
-                Edit Profile
+
+            <div class="card-header">
+
+
+                <h4 class="mb-0">
+
+                    About {{ user.username }}
+
+                </h4>
+
+
+            </div>
+
+
+
+            <div class="card-body">
+
+
+                {% if user.bio %}
+
+
+                <p class="mb-0">
+
+                    {{ user.bio }}
+
+                </p>
+
+
+                {% else %}
+
+
+                <p class="text-muted mb-0">
+
+                    No bio added yet.
+
+                </p>
+
+
+                {% endif %}
+
+
+            </div>
+
+
+        </div>
+
+
+
+
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+
+
+            <h3>
+
+                Posts
 
             </h3>
 
+
+
         </div>
 
-        <div class="card-body">
 
-            <form
-                method="POST"
-                enctype="multipart/form-data"
+
+
+
+        {% if posts %}
+
+
+
+        {% for post in posts %}
+
+
+
+        <div class="card shadow-sm mb-4">
+
+
+            {% if post.image %}
+
+
+            <img
+                src="{{ url_for('static', filename='uploads/' + post.image) }}"
+                class="card-img-top"
+                style="max-height:450px; object-fit:cover;"
+                alt="{{ post.title }}"
             >
 
-                {{ form.hidden_tag() }}
 
-                <div class="mb-3">
+            {% endif %}
 
-                    {{ form.first_name.label(class="form-label") }}
 
-                    {{ form.first_name(
-                        class="form-control",
-                        placeholder="First Name"
-                    ) }}
 
-                </div>
 
-                <div class="mb-3">
 
-                    {{ form.last_name.label(class="form-label") }}
+            {% if post.video %}
 
-                    {{ form.last_name(
-                        class="form-control",
-                        placeholder="Last Name"
-                    ) }}
 
-                </div>
+            <video
+                controls
+                class="w-100"
+                style="max-height:450px;"
+            >
 
-                <div class="mb-3">
 
-                    {{ form.username.label(class="form-label") }}
+                <source
+                    src="{{ url_for('static', filename='uploads/' + post.video) }}"
+                >
 
-                    {{ form.username(
-                        class="form-control",
-                        placeholder="Username"
-                    ) }}
 
-                </div>
+                Your browser does not support video playback.
 
-                <div class="mb-3">
 
-                    {{ form.email.label(class="form-label") }}
+            </video>
 
-                    {{ form.email(
-                        class="form-control",
-                        placeholder="Email Address"
-                    ) }}
 
-                </div>
+            {% endif %}
 
-                <div class="mb-3">
 
-                    {{ form.bio.label(class="form-label") }}
 
-                    {{ form.bio(
-                        class="form-control",
-                        rows="4",
-                        placeholder="Tell everyone about yourself..."
-                    ) }}
 
-                </div>
 
-                <div class="mb-3">
+            <div class="card-body">
 
-                    {{ form.location.label(class="form-label") }}
 
-                    {{ form.location(
-                        class="form-control",
-                        placeholder="Location"
-                    ) }}
+                <h4>
 
-                </div>
 
-                <div class="mb-3">
+                    <a
+                        href="{{ url_for('posts.view_post', post_id=post.id) }}"
+                        class="text-decoration-none"
+                    >
 
-                    {{ form.website.label(class="form-label") }}
+                        {{ post.title }}
 
-                    {{ form.website(
-                        class="form-control",
-                        placeholder="https://example.com"
-                    ) }}
+                    </a>
 
-                </div>
 
-                <div class="mb-3">
+                </h4>
 
-                    {{ form.profile_picture.label(class="form-label") }}
 
-                    {{ form.profile_picture(
-                        class="form-control",
-                        accept="image/*"
-                    ) }}
+
+
+
+                <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+
 
                     <small class="text-muted">
 
-                        Maximum profile picture size: 50 MB.
+
+                        {{ post.created_at.strftime("%d %B %Y") }}
+
 
                     </small>
 
+
+
+                    {% if post.category %}
+
+
+                    <span class="badge bg-secondary">
+
+
+                        {{ post.category.name }}
+
+
+                    </span>
+
+
+                    {% endif %}
+
+
                 </div>
 
-                {{ form.submit(
-                    class="btn btn-success"
-                ) }}
 
-            </form>
+
+
+
+                <p>
+
+
+                    {{ post.content[:200] }}
+
+
+                    {% if post.content|length > 200 %}
+
+                    ...
+
+                    {% endif %}
+
+
+                </p>
+
+
+
+
+
+                <div class="d-flex gap-3 text-muted">
+
+
+                    <small>
+
+                        ❤️ {{ post.likes|length }}
+                        Like{{ '' if post.likes|length == 1 else 's' }}
+
+                    </small>
+
+
+
+                    <small>
+
+                        💬 {{ post.comments|length }}
+                        Comment{{ '' if post.comments|length == 1 else 's' }}
+
+                    </small>
+
+
+                </div>
+
+
+            </div>
+
 
         </div>
 
+
+        {% endfor %}
+
+
+
+        {% else %}
+
+
+        <div class="card shadow-sm">
+
+
+            <div class="card-body text-center py-5">
+
+
+                <h4>
+
+                    No Posts Yet
+
+                </h4>
+
+
+                <p class="text-muted mb-0">
+
+                    This user has not published anything yet.
+
+                </p>
+
+
+            </div>
+
+
+        </div>
+
+
+        {% endif %}
+                <div class="mb-4"></div>
+
+
     </div>
 
-    {% endif %}
 
 </div>
+
+
+
 
 {% endblock %}
