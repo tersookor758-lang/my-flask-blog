@@ -138,6 +138,51 @@
 
             <p class="mt-3 mb-2">
                 {{ comment.content }}
+                <div class="mt-2 d-flex align-items-center gap-2">
+
+    {% if current_user.is_authenticated %}
+
+    <form
+        action="{{ url_for('likes.like_comment', comment_id=comment.id) }}"
+        method="POST"
+        class="d-inline"
+    >
+
+        <button
+            type="submit"
+            class="btn btn-outline-danger btn-sm"
+        >
+
+            {% set liked = namespace(value=False) %}
+
+            {% for like in comment.likes %}
+
+                {% if like.user_id == current_user.id %}
+                    {% set liked.value = True %}
+                {% endif %}
+
+            {% endfor %}
+
+            {% if liked.value %}
+                ❤️ Unlike
+            {% else %}
+                🤍 Like
+            {% endif %}
+
+        </button>
+
+    </form>
+
+    {% endif %}
+
+    <small class="text-muted">
+
+        ❤️ {{ comment.likes|length }}
+        Like{{ '' if comment.likes|length == 1 else 's' }}
+
+    </small>
+
+</div>
             </p>
 
             <div class="d-flex flex-wrap gap-2">
