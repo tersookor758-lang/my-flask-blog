@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ post.title }}
+{% endblock %}
+
+{% block content %}
+
+<div class="mb-4">
+
+    <a
+        href="{{ url_for('main.home') }}"
+        class="btn btn-outline-secondary"
+    >
+        ← Back to Home
+    </a>
+
+</div>
+
+<div class="card shadow-sm">
+
+    <div class="card-body">
+
+        <h2 class="mb-3">
+            {{ post.title }}
+        </h2>
+
+        <p class="text-muted">
+
+            By
+
+            <a
+                href="{{ url_for('profile.user_profile', username=post.author.username) }}"
+                class="text-decoration-none fw-bold"
+            >
+                {{ post.author.username }}
+            </a>
+
+            |
+
+            {{ post.created_at.strftime("%d %B %Y") }}
+
+            {% if post.category %}
+
+                |
+
+                <span class="badge bg-secondary">
+                    {{ post.category.name }}
+                </span>
+
+            {% endif %}
+
+        </p>
+
+        <hr>
