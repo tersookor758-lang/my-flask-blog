@@ -4,161 +4,365 @@
 Create Post
 {% endblock %}
 
+
 {% block content %}
 
 <div class="row justify-content-center">
 
-    <div class="col-md-8">
+    <div class="col-lg-8">
 
-        <div class="card shadow">
 
-            <div class="card-header bg-dark text-white">
+        <div class="card shadow-sm">
+
+
+            <div class="card-header">
 
                 <h3 class="mb-0">
+
                     Create New Post
+
                 </h3>
 
             </div>
 
+
+
             <div class="card-body">
+
 
                 <form
                     method="POST"
                     enctype="multipart/form-data"
-                    id="createPostForm"
                 >
+
 
                     {{ form.hidden_tag() }}
 
-                    <!-- Title -->
 
-                    <div class="mb-3">
 
-                        {{ form.title.label(class="form-label") }}
+                    <div class="mb-4">
+
+
+                        {{ form.title.label(
+                            class="form-label fw-semibold"
+                        ) }}
+
 
                         {{ form.title(
                             class="form-control",
-                            placeholder="Enter post title",
-                            required=True
+                            placeholder="Enter post title..."
                         ) }}
+
+
+
+                        {% for error in form.title.errors %}
+
+                        <div class="text-danger small mt-1">
+
+                            {{ error }}
+
+                        </div>
+
+                        {% endfor %}
+
 
                     </div>
 
-                    <!-- Content -->
 
-                    <div class="mb-3">
 
-                        {{ form.content.label(class="form-label") }}
+                    <div class="mb-4">
 
-                        {{ form.content(
-                            class="form-control",
-                            rows="10",
-                            placeholder="Write your post here...",
-                            required=True
+
+                        {{ form.category.label(
+                            class="form-label fw-semibold"
                         ) }}
 
-                    </div>
-
-                    <!-- Category -->
-
-                    <div class="mb-3">
-
-                        {{ form.category.label(class="form-label") }}
 
                         {{ form.category(
                             class="form-select"
                         ) }}
 
-                        <small class="text-muted">
-                            Select a category for your post (optional).
-                        </small>
+
+
+                        {% for error in form.category.errors %}
+
+                        <div class="text-danger small mt-1">
+
+                            {{ error }}
+
+                        </div>
+
+                        {% endfor %}
+
 
                     </div>
 
-                    <!-- Image -->
 
-                    <div class="mb-3">
-
-                        {{ form.image.label(class="form-label") }}
-
-                        {{ form.image(
-                            class="form-control",
-                            accept="image/*"
-                        ) }}
-
-                        <small class="text-muted">
-                            Supported formats:
-                            JPG, JPEG, PNG, GIF, WEBP.
-                            Maximum size: 50 MB.
-                        </small>
-
-                    </div>
-
-                    <!-- Video -->
 
                     <div class="mb-4">
 
-                        {{ form.video.label(class="form-label") }}
+
+                        {{ form.content.label(
+                            class="form-label fw-semibold"
+                        ) }}
+
+
+
+                        {{ form.content(
+                            class="form-control",
+                            rows="8",
+                            placeholder="Write your post..."
+                        ) }}
+
+
+
+                        {% for error in form.content.errors %}
+
+                        <div class="text-danger small mt-1">
+
+                            {{ error }}
+
+                        </div>
+
+                        {% endfor %}
+
+
+                    </div>
+                                        <div class="mb-4">
+
+
+                        {{ form.image.label(
+                            class="form-label fw-semibold"
+                        ) }}
+
+
+                        {{ form.image(
+                            class="form-control",
+                            accept="image/*",
+                            id="imageInput"
+                        ) }}
+
+
+
+                        <small class="text-muted">
+
+                            Upload an image (JPG, PNG, JPEG)
+
+                        </small>
+
+
+
+                        {% for error in form.image.errors %}
+
+                        <div class="text-danger small mt-1">
+
+                            {{ error }}
+
+                        </div>
+
+                        {% endfor %}
+
+
+
+                        <div class="mt-3">
+
+                            <img
+                                id="imagePreview"
+                                class="img-fluid rounded shadow-sm d-none"
+                                style="max-height:300px;"
+                                alt="Image preview"
+                            >
+
+                        </div>
+
+
+                    </div>
+
+
+
+
+                    <div class="mb-4">
+
+
+                        {{ form.video.label(
+                            class="form-label fw-semibold"
+                        ) }}
+
+
 
                         {{ form.video(
                             class="form-control",
-                            accept="video/*"
+                            accept="video/*",
+                            id="videoInput"
                         ) }}
 
+
+
                         <small class="text-muted">
-                            Supported formats:
-                            MP4, MOV, AVI, MKV, WEBM.
-                            Maximum size: 1.5 GB.
+
+                            Upload a video (MP4, WebM, MOV)
+
                         </small>
+
+
+
+                        {% for error in form.video.errors %}
+
+                        <div class="text-danger small mt-1">
+
+                            {{ error }}
+
+                        </div>
+
+                        {% endfor %}
+
+
+
+                        <div class="mt-3">
+
+
+                            <video
+                                id="videoPreview"
+                                controls
+                                class="w-100 rounded shadow-sm d-none"
+                                style="max-height:350px;"
+                            >
+
+                            </video>
+
+
+                        </div>
+
 
                     </div>
 
-                    <!-- Buttons -->
+
+
+
 
                     <div class="d-flex gap-2">
 
-                        <button
-                            type="submit"
+
+                        {{ form.submit(
                             class="btn btn-dark"
-                            id="submitBtn"
-                        >
-                            Publish Post
-                        </button>
+                        ) }}
+
+
 
                         <a
                             href="{{ url_for('main.home') }}"
-                            class="btn btn-secondary"
+                            class="btn btn-outline-secondary"
                         >
+
                             Cancel
+
                         </a>
+
 
                     </div>
 
+
+
                 </form>
+
 
             </div>
 
+
         </div>
+
 
     </div>
 
+
 </div>
+{% block scripts %}
 
 <script>
 
-document.getElementById("createPostForm").addEventListener(
-    "submit",
-    function () {
 
-        const button = document.getElementById("submitBtn");
+const imageInput = document.getElementById("imageInput");
 
-        button.disabled = true;
+const imagePreview = document.getElementById("imagePreview");
 
-        button.innerHTML = "Uploading...";
 
-    }
-);
+
+if (imageInput) {
+
+
+    imageInput.addEventListener(
+        "change",
+        function(event) {
+
+
+            const file = event.target.files[0];
+
+
+            if (file) {
+
+
+                imagePreview.src = URL.createObjectURL(file);
+
+
+                imagePreview.classList.remove("d-none");
+
+
+            }
+
+
+        }
+
+    );
+
+
+}
+
+
+
+
+
+const videoInput = document.getElementById("videoInput");
+
+const videoPreview = document.getElementById("videoPreview");
+
+
+
+if (videoInput) {
+
+
+    videoInput.addEventListener(
+        "change",
+        function(event) {
+
+
+            const file = event.target.files[0];
+
+
+            if (file) {
+
+
+                videoPreview.src = URL.createObjectURL(file);
+
+
+                videoPreview.classList.remove("d-none");
+
+
+            }
+
+
+        }
+
+    );
+
+
+}
+
+
 
 </script>
+
+
+{% endblock %}
+
 
 {% endblock %}
