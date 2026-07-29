@@ -1,12 +1,15 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
+
 from wtforms import (
     StringField,
     PasswordField,
     SubmitField,
     TextAreaField,
-    SelectField
+    SelectField,
+    HiddenField
 )
+
 from wtforms.validators import (
     DataRequired,
     Email,
@@ -16,7 +19,9 @@ from wtforms.validators import (
 )
 
 
-# ---------------- REGISTER ----------------
+# =====================================================
+# REGISTER
+# =====================================================
 
 class RegisterForm(FlaskForm):
 
@@ -47,7 +52,9 @@ class RegisterForm(FlaskForm):
     submit = SubmitField("Register")
 
 
-# ---------------- LOGIN ----------------
+# =====================================================
+# LOGIN
+# =====================================================
 
 class LoginForm(FlaskForm):
 
@@ -69,7 +76,9 @@ class LoginForm(FlaskForm):
     submit = SubmitField("Login")
 
 
-## ---------------- CREATE / EDIT POST ----------------
+# =====================================================
+# CREATE / EDIT POST
+# =====================================================
 
 class PostForm(FlaskForm):
 
@@ -119,7 +128,29 @@ class PostForm(FlaskForm):
 
     submit = SubmitField("Publish Post")
 
-# ---------------- PROFILE ----------------
+
+# =====================================================
+# COMMENT
+# =====================================================
+
+class CommentForm(FlaskForm):
+
+    content = TextAreaField(
+        "Comment",
+        validators=[
+            DataRequired(),
+            Length(max=5000)
+        ]
+    )
+
+    parent_id = HiddenField()
+
+    submit = SubmitField("Post Comment")
+
+
+# =====================================================
+# PROFILE
+# =====================================================
 
 class ProfileForm(FlaskForm):
 
