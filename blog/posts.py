@@ -31,63 +31,69 @@ from forms import (
     CommentForm
 )
 
+posts = Blueprint(
+    "posts",
+    __name__
+)
 
-posts = Blueprint("posts", __name__)
+
+# ==========================================================
+# Helper
+# ==========================================================
+
+def save_uploaded_file(file):
+
+    if not file or file.filename == "":
+        return None
+
+    filename = (
+        f"{uuid.uuid4()}_"
+        f"{secure_filename(file.filename)}"
+    )
+
+    file.save(
+        os.path.join(
+            current_app.config["UPLOAD_FOLDER"],
+            filename
+        )
+    )
+
+    return filename
 
 
-@posts.route("/create-post", methods=["GET", "POST"])
+# ==========================================================
+# CREATE POST
+# ==========================================================
+
+@posts.route(
+    "/create-post",
+    methods=["GET", "POST"]
+)
 @login_required
 def create_post():
 
     form = PostForm()
 
     form.category.choices = [
-        (category.id, category.name)
-        for category in Category.query.order_by(Category.name).all()
+        (c.id, c.name)
+        for c in Category.query.order_by(Category.name).all()
     ]
 
     if form.validate_on_submit():
 
-        image_filename = None
-        video_filename = None
+        image = save_uploaded_file(
+            form.image.data
+        )
 
-        if form.image.data:
-
-            image = form.image.data
-
-            image_filename = (
-                f"{uuid.uuid4()}_"
-                f"{secure_filename(image.filename)}"
-            )
-
-            image.save(
-                os.path.join(
-                    current_app.config["UPLOAD_FOLDER"],
-                    image_filename
-                )
-            )
-
-        if form.video.data:
-
-            video = form.video.data
-
-            video_filename = (
-                f"{uuid.uuid4()}_"
-                f"{secure_filename(video.filename)}"
-            )
-
-            video.save(
-                os.path.join(
-                    current_app.config["UPLOAD_FOLDER"],
-                    video_filename
-                )
-            )
+        video = save_uploaded_file(
+            form.video.data
+        )
 
         post = Post(
             title=form.title.data,
             content=form.content.data,
-            image=image_filename,
-            video=video_filename,
+            image=image,
+            video=video,
             author=current_user,
             category_id=form.category.data
         )
@@ -96,18 +102,53 @@ def create_post():
         db.session.commit()
 
         flash(
-            "Post created successfully!",
+            "Post published successfully.",
             "success"
         )
 
         return redirect(
-            url_for("main.home")
+            url_for(
+                "posts.view_post",
+                post_id=post.id
+            )
         )
 
     return render_template(
         "create_post.html",
         form=form
     )
+
+
+# ==========================================================
+# VIEW POST
+# ==========================================================
+
+@posts.route("/post/<int:post_id>")
+def view_post(post_id):
+
+    post = Post.query.get_or_404(post_id)
+
+    form = CommentForm()
+
+    top_level_comments = Comment.query.filter_by(
+        post_id=post.id,
+        parent_id=None
+    ).order_by(
+        Comment.created_at.asc()
+    ).all()
+
+    return render_template(
+        "view_post.html",
+        post=post,
+        form=form,
+        comments=top_level_comments
+    )
+
+
+# ==========================================================
+# EDIT POST
+# ==========================================================
+
 @posts.route(
     "/post/<int:post_id>/edit",
     methods=["GET", "POST"]
@@ -123,8 +164,8 @@ def edit_post(post_id):
     form = PostForm(obj=post)
 
     form.category.choices = [
-        (category.id, category.name)
-        for category in Category.query.order_by(Category.name).all()
+        (c.id, c.name)
+        for c in Category.query.order_by(Category.name).all()
     ]
 
     if request.method == "GET":
@@ -140,62 +181,38 @@ def edit_post(post_id):
 
             if post.image:
 
-                old_image = os.path.join(
+                old = os.path.join(
                     current_app.config["UPLOAD_FOLDER"],
                     post.image
                 )
 
-                if os.path.exists(old_image):
-                    os.remove(old_image)
+                if os.path.exists(old):
+                    os.remove(old)
 
-            image = form.image.data
-
-            image_filename = (
-                f"{uuid.uuid4()}_"
-                f"{secure_filename(image.filename)}"
+            post.image = save_uploaded_file(
+                form.image.data
             )
-
-            image.save(
-                os.path.join(
-                    current_app.config["UPLOAD_FOLDER"],
-                    image_filename
-                )
-            )
-
-            post.image = image_filename
 
         if form.video.data:
 
             if post.video:
 
-                old_video = os.path.join(
+                old = os.path.join(
                     current_app.config["UPLOAD_FOLDER"],
                     post.video
                 )
 
-                if os.path.exists(old_video):
-                    os.remove(old_video)
+                if os.path.exists(old):
+                    os.remove(old)
 
-            video = form.video.data
-
-            video_filename = (
-                f"{uuid.uuid4()}_"
-                f"{secure_filename(video.filename)}"
+            post.video = save_uploaded_file(
+                form.video.data
             )
-
-            video.save(
-                os.path.join(
-                    current_app.config["UPLOAD_FOLDER"],
-                    video_filename
-                )
-            )
-
-            post.video = video_filename
 
         db.session.commit()
 
         flash(
-            "Post updated successfully!",
+            "Post updated successfully.",
             "success"
         )
 
@@ -211,3 +228,212 @@ def edit_post(post_id):
         form=form,
         post=post
     )
+# ==========================================================
+# DELETE POST
+# ==========================================================
+
+@posts.route(
+    "/post/<int:post_id>/delete",
+    methods=["POST"]
+)
+@login_required
+def delete_post(post_id):
+
+    post = Post.query.get_or_404(post_id)
+
+    if post.author != current_user:
+        abort(403)
+
+    # Delete uploaded image
+    if post.image:
+
+        image_path = os.path.join(
+            current_app.config["UPLOAD_FOLDER"],
+            post.image
+        )
+
+        if os.path.exists(image_path):
+            os.remove(image_path)
+
+    # Delete uploaded video
+    if post.video:
+
+        video_path = os.path.join(
+            current_app.config["UPLOAD_FOLDER"],
+            post.video
+        )
+
+        if os.path.exists(video_path):
+            os.remove(video_path)
+
+    db.session.delete(post)
+    db.session.commit()
+
+    flash(
+        "Post deleted successfully.",
+        "success"
+    )
+
+    return redirect(
+        url_for("main.home")
+    )
+
+
+# ==========================================================
+# ADD COMMENT
+# ==========================================================
+
+@posts.route(
+    "/post/<int:post_id>/comment",
+    methods=["POST"]
+)
+@login_required
+def add_comment(post_id):
+
+    post = Post.query.get_or_404(post_id)
+
+    form = CommentForm()
+
+    if not form.validate_on_submit():
+
+        flash(
+            "Please enter a comment.",
+            "danger"
+        )
+
+        return redirect(
+            url_for(
+                "posts.view_post",
+                post_id=post.id
+            )
+        )
+
+    comment = Comment(
+        content=form.content.data,
+        author=current_user,
+        post=post
+    )
+
+    db.session.add(comment)
+    db.session.commit()
+
+    flash(
+        "Comment added successfully.",
+        "success"
+    )
+
+    return redirect(
+        url_for(
+            "posts.view_post",
+            post_id=post.id
+        )
+    )
+
+
+# ==========================================================
+# REPLY TO COMMENT
+# ==========================================================
+
+@posts.route(
+    "/comment/<int:comment_id>/reply",
+    methods=["POST"]
+)
+@login_required
+def reply_comment(comment_id):
+
+    parent_comment = Comment.query.get_or_404(comment_id)
+
+    form = CommentForm()
+
+    if not form.validate_on_submit():
+
+        flash(
+            "Reply cannot be empty.",
+            "danger"
+        )
+
+        return redirect(
+            url_for(
+                "posts.view_post",
+                post_id=parent_comment.post_id
+            )
+        )
+
+    reply = Comment(
+        content=form.content.data,
+        author=current_user,
+        post_id=parent_comment.post_id,
+        parent_id=parent_comment.id
+    )
+
+    db.session.add(reply)
+    db.session.commit()
+
+    flash(
+        "Reply posted successfully.",
+        "success"
+    )
+
+    return redirect(
+        url_for(
+            "posts.view_post",
+            post_id=parent_comment.post_id
+        )
+    )
+# ==========================================================
+# VIEW POST
+# ==========================================================
+
+@posts.route("/post/<int:post_id>")
+def view_post(post_id):
+
+    post = Post.query.get_or_404(post_id)
+
+    comment_form = CommentForm()
+
+    comments = (
+        Comment.query
+        .filter_by(
+            post_id=post.id,
+            parent_id=None
+        )
+        .order_by(Comment.created_at.asc())
+        .all()
+    )
+
+    total_comments = Comment.query.filter_by(
+        post_id=post.id
+    ).count()
+
+    total_post_likes = len(post.likes)
+
+    return render_template(
+        "view_post.html",
+        post=post,
+        comments=comments,
+        comment_form=comment_form,
+        total_comments=total_comments,
+        total_post_likes=total_post_likes
+    )
+# ==========================================================
+# Upload Configuration
+# ==========================================================
+
+ALLOWED_IMAGE_EXTENSIONS = {
+    "jpg",
+    "jpeg",
+    "png",
+    "gif",
+    "webp"
+}
+
+ALLOWED_VIDEO_EXTENSIONS = {
+    "mp4",
+    "mov",
+    "avi",
+    "mkv",
+    "webm"
+}
+
+MAX_IMAGE_SIZE = 50 * 1024 * 1024          # 50 MB
+MAX_VIDEO_SIZE = 1536 * 1024 * 1024        # 1.5 GB
