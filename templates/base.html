@@ -20,15 +20,26 @@
     >
 
     <script>
-        const savedTheme = localStorage.getItem("theme") || "light";
-        document.documentElement.setAttribute("data-bs-theme", savedTheme);
+
+        const savedTheme =
+            localStorage.getItem("theme") || "light";
+
+        document.documentElement.setAttribute(
+            "data-bs-theme",
+            savedTheme
+        );
+
     </script>
 
     <style>
 
         html,
         body{
-            transition: background-color .25s ease,color .25s ease;
+
+            transition:
+                background-color .25s ease,
+                color .25s ease;
+
         }
 
         .card,
@@ -39,17 +50,39 @@
         .form-control,
         .form-select,
         .btn{
+
             transition:
                 background-color .25s ease,
                 color .25s ease,
                 border-color .25s ease;
+
         }
 
         img{
+
             max-width:100%;
+            height:auto;
+
+        }
+
+        .navbar-brand{
+
+            letter-spacing:.4px;
+
+        }
+
+        .profile-thumb{
+
+            width:34px;
+            height:34px;
+            object-fit:cover;
+
         }
 
     </style>
+
+    {% block extra_css %}
+    {% endblock %}
 
 </head>
 
@@ -71,6 +104,9 @@
             type="button"
             data-bs-toggle="collapse"
             data-bs-target="#navbarContent"
+            aria-controls="navbarContent"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
         >
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -91,7 +127,7 @@
                     type="search"
                     name="search"
                     placeholder="Search posts or users..."
-                    value="{{ search if search else '' }}"
+                    value="{{ request.args.get('search','') }}"
                 >
 
                 <button
@@ -103,39 +139,107 @@
 
             </form>
 
-            <div class="navbar-nav ms-lg-auto align-items-lg-center">
+            <ul class="navbar-nav ms-lg-auto align-items-lg-center">
 
-                <a
-                    class="nav-link"
-                    href="{{ url_for('main.home') }}"
-                >
-                    Home
-                </a>
+                <li class="nav-item">
+
+                    <a
+                        class="nav-link {% if request.endpoint == 'main.home' %}active{% endif %}"
+                        href="{{ url_for('main.home') }}"
+                    >
+                        Home
+                    </a>
+
+                </li>
 
                 {% if current_user.is_authenticated %}
 
+                <li class="nav-item">
+
                     <a
-                        class="nav-link"
+                        class="nav-link {% if request.endpoint == 'posts.create_post' %}active{% endif %}"
                         href="{{ url_for('posts.create_post') }}"
                     >
                         Create Post
                     </a>
 
-                    <a
-                        class="nav-link"
-                        href="{{ url_for('profile.view_profile') }}"
-                    >
-                        {{ current_user.username }}
-                    </a>
+                </li>
+
+                <li class="nav-item dropdown">
 
                     <a
-                        class="nav-link"
-                        href="{{ url_for('auth.logout') }}"
+                        class="nav-link dropdown-toggle d-flex align-items-center"
+                        href="#"
+                        role="button"
+                        data-bs-toggle="dropdown"
                     >
-                        Logout
+
+                        {% if current_user.profile_picture %}
+
+                            <img
+                                src="{{ url_for('static', filename='uploads/' ~ current_user.profile_picture) }}"
+                                class="rounded-circle profile-thumb me-2"
+                            >
+
+                        {% else %}
+
+                            <img
+                                src="{{ url_for('static', filename='images/default.png') }}"
+                                class="rounded-circle profile-thumb me-2"
+                            >
+
+                        {% endif %}
+
+                        {{ current_user.username }}
+
                     </a>
+
+                    <ul class="dropdown-menu dropdown-menu-end">
+
+                        <li>
+
+                            <a
+                                class="dropdown-item"
+                                href="{{ url_for('profile.view_profile') }}"
+                            >
+                                My Profile
+                            </a>
+
+                        </li>
+
+                        <li>
+
+                            <a
+                                class="dropdown-item"
+                                href="{{ url_for('posts.create_post') }}"
+                            >
+                                New Post
+                            </a>
+
+                        </li>
+
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+
+                        <li>
+
+                            <a
+                                class="dropdown-item text-danger"
+                                href="{{ url_for('auth.logout') }}"
+                            >
+                                Logout
+                            </a>
+
+                        </li>
+
+                    </ul>
+
+                </li>
 
                 {% else %}
+
+                <li class="nav-item">
 
                     <a
                         class="nav-link"
@@ -144,6 +248,10 @@
                         Login
                     </a>
 
+                </li>
+
+                <li class="nav-item">
+
                     <a
                         class="nav-link"
                         href="{{ url_for('auth.register') }}"
@@ -151,18 +259,24 @@
                         Register
                     </a>
 
+                </li>
+
                 {% endif %}
 
-                <button
-                    id="theme-toggle"
-                    class="btn btn-outline-light ms-lg-3 mt-2 mt-lg-0"
-                    type="button"
-                    title="Toggle Dark Mode"
-                >
-                    🌙
-                </button>
+                <li class="nav-item ms-lg-3 mt-2 mt-lg-0">
 
-            </div>
+                    <button
+                        id="theme-toggle"
+                        class="btn btn-outline-light"
+                        type="button"
+                        title="Toggle Theme"
+                    >
+                        🌙
+                    </button>
+
+                </li>
+
+            </ul>
 
         </div>
 
@@ -172,48 +286,53 @@
 
 <div class="container mt-4">
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
+{% with messages = get_flashed_messages(with_categories=true) %}
 
-        {% if messages %}
+{% if messages %}
 
-            {% for category, message in messages %}
+{% for category,message in messages %}
 
-                <div class="alert alert-{{ category }} alert-dismissible fade show">
+<div
+    class="alert alert-{{ category }} alert-dismissible fade show shadow-sm"
+>
 
-                    {{ message }}
+    {{ message }}
 
-                    <button
-                        type="button"
-                        class="btn-close"
-                        data-bs-dismiss="alert"
-                    ></button>
+    <button
+        class="btn-close"
+        data-bs-dismiss="alert"
+    ></button>
 
-                </div>
+</div>
 
-            {% endfor %}
+{% endfor %}
 
-        {% endif %}
+{% endif %}
 
-    {% endwith %}
+{% endwith %}
 
-    {% block content %}
-    {% endblock %}
+{% block content %}
+{% endblock %}
 
 </div>
 
 <footer class="bg-dark text-white text-center py-3 mt-5">
 
-    <div class="container">
+<div class="container">
 
-        <p class="mb-1">
-            &copy; 2026 JP Blog. All rights reserved.
-        </p>
+<p class="mb-1">
 
-        <small>
-            Built with Flask & Bootstrap
-        </small>
+© 2026 JP Blog. All rights reserved.
 
-    </div>
+</p>
+
+<small>
+
+Built with Flask & Bootstrap 5
+
+</small>
+
+</div>
 
 </footer>
 
@@ -221,35 +340,63 @@
 
 <script>
 
-    const html = document.documentElement;
-    const toggle = document.getElementById("theme-toggle");
+const html=document.documentElement;
 
-    function setTheme(theme){
+const toggle=document.getElementById("theme-toggle");
 
-        html.setAttribute("data-bs-theme", theme);
-        localStorage.setItem("theme", theme);
+function setTheme(theme){
 
-        toggle.innerHTML = theme === "dark"
-            ? "☀️"
-            : "🌙";
+html.setAttribute(
+"data-bs-theme",
+theme
+);
 
-    }
+localStorage.setItem(
+"theme",
+theme
+);
 
-    setTheme(localStorage.getItem("theme") || "light");
+toggle.innerHTML=
+theme==="dark"
+?
+"☀️"
+:
+"🌙";
 
-    toggle.addEventListener("click", function(){
+}
 
-        const current = html.getAttribute("data-bs-theme");
+setTheme(
+localStorage.getItem("theme")
+||
+"light"
+);
 
-        setTheme(
-            current === "dark"
-                ? "light"
-                : "dark"
-        );
+toggle.addEventListener(
+"click",
+function(){
 
-    });
+const current=
+html.getAttribute(
+"data-bs-theme"
+);
+
+setTheme(
+
+current==="dark"
+?
+"light"
+:
+"dark"
+
+);
+
+}
+);
 
 </script>
+
+{% block extra_js %}
+{% endblock %}
 
 </body>
 </html>
