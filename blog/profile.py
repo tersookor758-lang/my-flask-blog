@@ -19,8 +19,7 @@ from werkzeug.utils import secure_filename
 
 from models import (
     db,
-    User,
-    Post
+    User
 )
 
 from forms import ProfileForm
@@ -93,6 +92,7 @@ def edit_profile():
         current_user.location = form.location.data
         current_user.website = form.website.data
 
+
         if form.profile_picture.data:
 
             if (
@@ -108,12 +108,14 @@ def edit_profile():
                 if os.path.exists(old_picture):
                     os.remove(old_picture)
 
+
             picture = form.profile_picture.data
 
             filename = (
                 f"{uuid.uuid4()}_"
                 f"{secure_filename(picture.filename)}"
             )
+
 
             picture.save(
                 os.path.join(
@@ -122,18 +124,23 @@ def edit_profile():
                 )
             )
 
+
             current_user.profile_picture = filename
 
+
         db.session.commit()
+
 
         flash(
             "Profile updated successfully!",
             "success"
         )
 
+
         return redirect(
             url_for("profile.view_profile")
         )
+
 
     if not form.is_submitted():
 
@@ -145,9 +152,149 @@ def edit_profile():
         form.location.data = current_user.location
         form.website.data = current_user.website
 
+
     return render_template(
         "profile.html",
         form=form,
         user=current_user,
         edit_mode=True
+    )
+
+
+# ---------------------------------------
+# FOLLOW USER
+# ---------------------------------------
+
+@profile.route(
+    "/user/<string:username>/follow",
+    methods=["POST"]
+)
+@login_required
+def follow_user(username):
+
+    user = User.query.filter_by(
+        username=username
+    ).first_or_404()
+
+
+    if user.id == current_user.id:
+
+        flash(
+            "You cannot follow yourself.",
+            "warning"
+        )
+
+        return redirect(
+            url_for(
+                "profile.user_profile",
+                username=username
+            )
+        )
+
+
+    current_user.follow(user)
+
+    db.session.commit()
+
+
+    flash(
+        f"You are now following {user.username}.",
+        "success"
+    )
+
+
+    return redirect(
+        url_for(
+            "profile.user_profile",
+            username=username
+        )
+    )
+
+
+# ---------------------------------------
+# UNFOLLOW USER
+# ---------------------------------------
+
+@profile.route(
+    "/user/<string:username>/unfollow",
+    methods=["POST"]
+)
+@login_required
+def unfollow_user(username):
+
+    user = User.query.filter_by(
+        username=username
+    ).first_or_404()
+
+
+    current_user.unfollow(user)
+
+    db.session.commit()
+
+
+    flash(
+        f"You unfollowed {user.username}.",
+        "success"
+    )
+
+
+    return redirect(
+        url_for(
+            "profile.user_profile",
+            username=username
+        )
+    )
+
+
+# ---------------------------------------
+# FOLLOWERS LIST
+# ---------------------------------------
+
+@profile.route(
+    "/user/<string:username>/followers"
+)
+def followers(username):
+
+    user = User.query.filter_by(
+        username=username
+    ).first_or_404()
+
+
+    followers = [
+        follow.follower
+        for follow in user.followers
+    ]
+
+
+    return render_template(
+        "followers.html",
+        user=user,
+        followers=followers
+    )
+
+
+# ---------------------------------------
+# FOLLOWING LIST
+# ---------------------------------------
+
+@profile.route(
+    "/user/<string:username>/following"
+)
+def following(username):
+
+    user = User.query.filter_by(
+        username=username
+    ).first_or_404()
+
+
+    following = [
+        follow.following
+        for follow in user.following
+    ]
+
+
+    return render_template(
+        "following.html",
+        user=user,
+        following=following
     )
