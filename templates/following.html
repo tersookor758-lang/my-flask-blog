@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+{{ user.username }}'s Following
+{% endblock %}
+
+
+
+{% block content %}
+
+
+<div class="container mt-4">
+
+
+    <div class="card shadow-sm">
+
+
+        <div class="card-body">
+
+
+            <h3 class="mb-4 text-center">
+
+                {{ user.username }}'s Following
+
+            </h3>
+
+
+
+            {% if following %}
+
+
+            <div class="list-group">
+
+
+                {% for person in following %}
+
+
+                <a
+                    href="{{ url_for('profile.user_profile', username=person.username) }}"
+                    class="list-group-item list-group-item-action d-flex align-items-center"
+                >
+
+
+                    {% if person.profile_picture %}
+
+
+                    <img
+                        src="{{ url_for('static', filename='uploads/' + person.profile_picture) }}"
+                        width="50"
+                        height="50"
+                        class="rounded-circle me-3"
+                        style="object-fit:cover;"
+                        alt="{{ person.username }}"
+                    >
+
+
+                    {% else %}
+
+
+                    <div
+                        class="rounded-circle bg-dark text-white d-flex align-items-center justify-content-center me-3"
+                        style="width:50px;height:50px;"
+                    >
+
+                        {{ person.username[0]|upper }}
+
+                    </div>
+
+
+                    {% endif %}
+
+
+
+                    <strong>
+
+                        {{ person.username }}
+
+                    </strong>
+
+
+                </a>
+
+
+                {% endfor %}
+
+
+            </div>
+
+
+            {% else %}
+
+
+            <div class="alert alert-info text-center">
+
+                Not following anyone yet.
+
+            </div>
+
+
+            {% endif %}
+
+
+        </div>
+
+
+    </div>
+
+
+</div>
+
+
+{% endblock %}
