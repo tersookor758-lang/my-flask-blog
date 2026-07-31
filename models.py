@@ -7,6 +7,57 @@ db = SQLAlchemy()
 
 
 # =====================================================
+# FOLLOW MODEL
+# =====================================================
+
+class Follow(db.Model):
+
+    __tablename__ = "follows"
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    follower_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id"),
+        nullable=False
+    )
+
+    following_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id"),
+        nullable=False
+    )
+
+    created_at = db.Column(
+        db.DateTime,
+        default=datetime.utcnow
+    )
+
+    follower = db.relationship(
+        "User",
+        foreign_keys=[follower_id],
+        back_populates="following"
+    )
+
+    following = db.relationship(
+        "User",
+        foreign_keys=[following_id],
+        back_populates="followers"
+    )
+
+    __table_args__ = (
+        db.UniqueConstraint(
+            "follower_id",
+            "following_id",
+            name="unique_follow"
+        ),
+    )
+
+
+# =====================================================
 # CATEGORY MODEL
 # =====================================================
 
@@ -128,11 +179,57 @@ class User(UserMixin, db.Model):
         lazy=True
     )
 
+    followers = db.relationship(
+        "Follow",
+        foreign_keys=[Follow.following_id],
+        back_populates="following",
+        cascade="all, delete-orphan",
+        lazy=True
+    )
+
+    following = db.relationship(
+        "Follow",
+        foreign_keys=[Follow.follower_id],
+        back_populates="follower",
+        cascade="all, delete-orphan",
+        lazy=True
+    )
+
+    def follow(self, user):
+        if not self.is_following(user):
+            db.session.add(
+                Follow(
+                    follower=self,
+                    following=user
+                )
+            )
+
+    def unfollow(self, user):
+        follow = Follow.query.filter_by(
+            follower_id=self.id,
+            following_id=user.id
+        ).first()
+
+        if follow:
+            db.session.delete(follow)
+
+    def is_following(self, user):
+        return Follow.query.filter_by(
+            follower_id=self.id,
+            following_id=user.id
+        ).first() is not None
+
+    @property
+    def followers_count(self):
+        return len(self.followers)
+
+    @property
+    def following_count(self):
+        return len(self.following)
+
     def __repr__(self):
         return f"<User {self.username}>"
-
-
-# =====================================================
+    # =====================================================
 # POST MODEL
 # =====================================================
 
@@ -277,9 +374,7 @@ class Comment(db.Model):
 
     def __repr__(self):
         return f"<Comment {self.id}>"
-
-
-# =====================================================
+    # =====================================================
 # POST LIKE MODEL
 # =====================================================
 
