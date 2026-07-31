@@ -86,10 +86,10 @@ def create_app():
     app.register_blueprint(comments)
 
     # =====================================
-    # Create Database Tables
+    # Database Migrations
     # =====================================
-
-    with app.app_context():
-        db.create_all()
+    # Database schema changes are managed
+    # using Flask-Migrate (Alembic).
+    # Do NOT call db.create_all() here.
 
     return app
